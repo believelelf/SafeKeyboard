@@ -1,0 +1,6 @@
+cipher:
+  safeKeyboardKeyStorePath: E:\\Java\\idea_workspaces\\SafeKeyboard\\safeKeyboard.keystore
+  safeKeyboardCerPath: E:\\Java\\idea_workspaces\\SafeKeyboard\\safeKeyboard.cer
+  alias: www.weiquding.com
+  storePass: weiquding
+  keyPass: weiquding
