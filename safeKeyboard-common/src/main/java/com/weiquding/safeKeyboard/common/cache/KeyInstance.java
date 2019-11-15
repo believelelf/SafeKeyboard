@@ -2,6 +2,7 @@ package com.weiquding.safeKeyboard.common.cache;
 
 import com.weiquding.safeKeyboard.common.domain.CipherPathProperties;
 import com.weiquding.safeKeyboard.common.util.KeystoreUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PostConstruct;
 import java.security.KeyStore;
@@ -13,6 +14,7 @@ import java.security.interfaces.RSAPublicKey;
  * 缓存key实例
  * @author believeyourself
  */
+@Slf4j
 public class KeyInstance {
 
     private  CipherPathProperties properties;
@@ -44,10 +46,15 @@ public class KeyInstance {
 
     @PostConstruct
     public void init(){
-        KEY_STORE = KeystoreUtil.loadKeyStore(properties.getSafeKeyboardKeyStorePath(), properties.getStorePass());
-        RSA_PRIVATE_KEY = KeystoreUtil.getRSAPrivateKey(KEY_STORE, properties.getAlias(), properties.getKeyPass());
-        SERVER_CERTIFICATE = KeystoreUtil.getCertificate(KEY_STORE, properties.getAlias());
-        CLIENT_CERTIFICATE = KeystoreUtil.loadCertificate(properties.getSafeKeyboardCerPath());
-        RSA_PUBLIC_KEY = KeystoreUtil.getRSAPublicKey(CLIENT_CERTIFICATE);
+        try{
+            KEY_STORE = KeystoreUtil.loadKeyStore(properties.getSafeKeyboardKeyStorePath(), properties.getStorePass());
+            RSA_PRIVATE_KEY = KeystoreUtil.getRSAPrivateKey(KEY_STORE, properties.getAlias(), properties.getKeyPass());
+            SERVER_CERTIFICATE = KeystoreUtil.getCertificate(KEY_STORE, properties.getAlias());
+            CLIENT_CERTIFICATE = KeystoreUtil.loadCertificate(properties.getSafeKeyboardCerPath());
+            RSA_PUBLIC_KEY = KeystoreUtil.getRSAPublicKey(CLIENT_CERTIFICATE);
+        }catch (Exception e){
+            log.error("load keystore error", e);
+        }
+
     }
 }

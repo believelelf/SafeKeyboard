@@ -4,3 +4,4 @@ cipher:
   alias: www.weiquding.com
   storePass: weiquding
   keyPass: weiquding
+debug: true
