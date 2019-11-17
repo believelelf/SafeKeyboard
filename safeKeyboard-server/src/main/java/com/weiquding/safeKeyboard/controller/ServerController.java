@@ -4,7 +4,10 @@ import com.weiquding.safeKeyboard.common.cache.GuavaCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
 import com.weiquding.safeKeyboard.common.exception.CipherRuntimeException;
 import com.weiquding.safeKeyboard.common.util.*;
+import com.weiquding.safeKeyboard.mock.UserMock;
+import com.weiquding.safeKeyboard.service.CheckUserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,6 +28,12 @@ import java.util.Map;
 @RestController
 public class ServerController {
 
+    @Autowired
+    private CheckUserService checkUserService;
+
+    @Autowired
+    private UserMock userMock;
+
     @RequestMapping(value = "/generateRNS", method = RequestMethod.POST)
     public Map<String, String> generateRNC(@RequestParam("RNC") String cipherText, String sessionId) {
         byte[] RNCAndPMS = RSAUtil.decryptByRSAPrivateKey(KeyInstance.RSA_PRIVATE_KEY, Base64.getDecoder().decode(cipherText));
@@ -42,7 +51,7 @@ public class ServerController {
     }
 
     @RequestMapping(value = "/submitEncryptedPassword", method = RequestMethod.POST)
-    public Map<String, String> submitEncryptedPassword(@RequestParam("password") String password, String sessionId) {
+    public Map<String, Object> submitEncryptedPassword(@RequestParam("password") String password, String sessionId) {
         password = URLDecoder.decode(password, StandardCharsets.UTF_8);
         // 密钥生成
         Map<String, String> session = GuavaCache.SERVER_CACHE.getIfPresent(sessionId);
@@ -75,9 +84,16 @@ public class ServerController {
         System.arraycopy(encryptedPwd, 32, pwdBytes, 0, pwdBytes.length);
         // 真实的密码
         String pwd = new String(pwdBytes, StandardCharsets.UTF_8);
-        log.info("The real password is [{}]", pwd);
-        Map<String, String> retMap = new HashMap<>();
-        retMap.put("pwd", pwd);
+        // 测试分支: 设置密码时
+        //checkUserService.checkPasswordRule(pwd);
+        // 对真实的密码进行哈希
+        String hashedPassword = PBKDF2Util.hashingPassword(pwd);
+        pwd = null;
+        boolean result = checkUserService.checkUserPassword(userMock.getUserIdBySessionId(sessionId), hashedPassword);
+
+       // 结果
+        Map<String, Object> retMap = new HashMap<>();
+        retMap.put("result", result);
         return retMap;
     }
 }

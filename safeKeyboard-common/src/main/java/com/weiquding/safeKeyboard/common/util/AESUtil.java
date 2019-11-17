@@ -10,7 +10,6 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Arrays;
 
 /**
  * AES工具
@@ -75,7 +74,6 @@ public class AESUtil {
             SecretKeySpec keySpec = new SecretKeySpec(encoded, ALGORITHM);
             // Create GCMParameterSpec
             GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
-            log.info("decrypt key : [{}]", Arrays.toString(keySpec.getEncoded()));
             // Initialize Cipher for DECRYPT_MODE
             cipher.init(Cipher.DECRYPT_MODE, keySpec, gcmParameterSpec);
             // Perform Decryption
@@ -103,8 +101,6 @@ public class AESUtil {
 
             // Create GCMParameterSpec
             GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
-
-            log.info("encrypt key : [{}]", Arrays.toString(keySpec.getEncoded()));
 
             // Initialize Cipher for ENCRYPT_MODE
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, gcmParameterSpec);

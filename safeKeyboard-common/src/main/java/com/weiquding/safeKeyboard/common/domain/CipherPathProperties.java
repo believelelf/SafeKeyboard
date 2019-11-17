@@ -36,6 +36,11 @@ public class CipherPathProperties {
      */
     private String alias;
 
+    /**
+     * PBKDF2 slat
+     */
+    private String slat;
+
 
 
 }

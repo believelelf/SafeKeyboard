@@ -1,6 +1,7 @@
 package com.weiquding.safeKeyboard.common.cache;
 
 import com.weiquding.safeKeyboard.common.domain.CipherPathProperties;
+import com.weiquding.safeKeyboard.common.util.Base64;
 import com.weiquding.safeKeyboard.common.util.KeystoreUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,6 +45,12 @@ public class KeyInstance {
      */
     public static RSAPublicKey RSA_PUBLIC_KEY;
 
+    /**
+     * PBKDF2 slat
+     */
+    public static byte[] PBKDF2_SLAT;
+
+
     @PostConstruct
     public void init(){
         try{
@@ -52,6 +59,7 @@ public class KeyInstance {
             SERVER_CERTIFICATE = KeystoreUtil.getCertificate(KEY_STORE, properties.getAlias());
             CLIENT_CERTIFICATE = KeystoreUtil.loadCertificate(properties.getSafeKeyboardCerPath());
             RSA_PUBLIC_KEY = KeystoreUtil.getRSAPublicKey(CLIENT_CERTIFICATE);
+            PBKDF2_SLAT = Base64.getDecoder().decode(properties.getSlat());
         }catch (Exception e){
             log.error("load keystore error", e);
         }

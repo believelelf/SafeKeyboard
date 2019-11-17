@@ -112,7 +112,7 @@ public class ClientController {
      * @return
      */
     @RequestMapping("/submitEncryptedPassword")
-    public Map<String, String> submitEncryptedPassword(@RequestParam("password") String password, String sessionId) {
+    public Map<String, Object> submitEncryptedPassword(@RequestParam("password") String password, String sessionId) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -120,7 +120,7 @@ public class ClientController {
         map.add("sessionId", sessionId);
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 
-        Map<String, String> retVal = restTemplate.postForObject("http://localhost:8082/submitEncryptedPassword", request, Map.class);
+        Map<String, Object> retVal = restTemplate.postForObject("http://localhost:8082/submitEncryptedPassword", request, Map.class);
 
         return retVal;
 
