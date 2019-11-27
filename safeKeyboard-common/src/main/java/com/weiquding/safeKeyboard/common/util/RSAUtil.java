@@ -16,7 +16,7 @@ import java.security.interfaces.RSAPublicKey;
  */
 public class RSAUtil {
 
-    private static final String ALGORITHM = "RSA";
+    private static final String ALGORITHM = "RSA/ECB/PKCS1Padding";
 
     /**
      * 签名算法
