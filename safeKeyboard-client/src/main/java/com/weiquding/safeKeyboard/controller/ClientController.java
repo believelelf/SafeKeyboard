@@ -1,5 +1,7 @@
 package com.weiquding.safeKeyboard.controller;
 
+import com.weiquding.safeKeyboard.common.annotation.DecryptSafeFields;
+import com.weiquding.safeKeyboard.common.annotation.EncryptSafeFields;
 import com.weiquding.safeKeyboard.common.cache.GuavaCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
 import com.weiquding.safeKeyboard.common.exception.CipherRuntimeException;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.ui.Model;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -124,6 +127,44 @@ public class ClientController {
 
         return retVal;
 
+    }
+
+    /**
+     *
+     * 测试报文加密
+     * @param sessionId
+     * @param model
+     * @param params
+     */
+    @EncryptSafeFields(fields = {"account", "toAccount", "tranAmount"})
+    @RequestMapping("/confirm")
+    public Map<String, Object> confirm(String sessionId, Model model, @RequestParam Map<String, Object> params){
+        log.info("confirm execute..., args:[{}]", model);
+        model.addAttribute("operation", "confirm");
+        // 放置返回参数
+        Map<String, Object> returnMap = new HashMap<>();
+        returnMap.put("account", params.get("account"));
+        returnMap.put("toAccount", params.get("toAccount"));
+        returnMap.put("tranAmount", params.get("tranAmount"));
+        return returnMap;
+    }
+
+    /**
+     * 测试报文解密
+     * @param sessionId
+     * @param model
+     * @param params
+     */
+    @DecryptSafeFields(allowUris = "/confirm")
+    @RequestMapping("/submit")
+    public Map<String, Object> submit(String sessionId, Model model, @RequestParam Map<String, Object> params){
+        log.info("submit execute...,args:[{}]", model);
+        model.addAttribute("operation", "submit");
+
+        // 放置返回参数
+        Map<String, Object> returnMap = new HashMap<>();
+        returnMap.putAll(model.asMap());
+        return returnMap;
     }
 
 }
