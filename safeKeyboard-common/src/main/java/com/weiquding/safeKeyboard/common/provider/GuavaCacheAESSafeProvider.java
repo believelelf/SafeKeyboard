@@ -49,8 +49,8 @@ public class GuavaCacheAESSafeProvider implements SafeProvider {
                 GuavaCache.CLIENT_CACHE.put(cipherKey, cipherMap);
             }
 
-            byte[] iv = AESUtil.ivParameter();
-            byte[] encryptedMsg = AESUtil.encryptByAESKey(cipherBytes, iv, bytes);
+            byte[] iv = AESUtil.AES_256_GCM_NoPadding.ivParameter();
+            byte[] encryptedMsg = AESUtil.AES_256_GCM_NoPadding.encryptByAESKey(cipherBytes, iv, bytes);
             byte[] newEncryptedMsg = new byte[iv.length + encryptedMsg.length];
             System.arraycopy(iv, 0, newEncryptedMsg, 0, iv.length);
             System.arraycopy(encryptedMsg, 0, newEncryptedMsg, iv.length, encryptedMsg.length);
@@ -75,7 +75,7 @@ public class GuavaCacheAESSafeProvider implements SafeProvider {
             throw new CipherRuntimeException("The encryption key does not exist");
         }
         byte[] cipher = Base64.getDecoder().decode(cipherMap.get(CIPHER_FIELD));
-        byte[] decryptedMsg = AESUtil.decryptByAESKey(cipher, iv, encryptedMsg);
+        byte[] decryptedMsg = AESUtil.AES_256_GCM_NoPadding.decryptByAESKey(cipher, iv, encryptedMsg);
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> params = new ObjectMapper().readValue(decryptedMsg, Map.class);

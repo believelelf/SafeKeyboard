@@ -74,7 +74,7 @@ public class ClientController {
     @RequestMapping("/getEncryptedPassword")
     public Map<String, String> getEncryptedPassword(@RequestParam("password") String password, String sessionId) {
         Map<String, String> map = new HashMap<>(1);
-        byte[] ivParameter = AESUtil.ivParameter();
+        byte[] ivParameter = AESUtil.AES_256_GCM_NoPadding.ivParameter();
         Map<String, String> session = GuavaCache.CLIENT_CACHE.getIfPresent(sessionId);
         String PMS = session.get("PMS");
         String RNC = session.get("RNC");
@@ -90,7 +90,7 @@ public class ClientController {
         Mac macInstance = HmacUtil.getMacInstance(HmacUtil.HMAC_SHA_256, keyBlock[0]);
         byte[] macDigest = macInstance.doFinal(confusionPwd);
         // 对称加密
-        byte[] encryptedPwd = AESUtil.encryptByAESKey(keyBlock[2], ivParameter, confusionPwd);
+        byte[] encryptedPwd = AESUtil.AES_256_GCM_NoPadding.encryptByAESKey(keyBlock[2], ivParameter, confusionPwd);
         log.debug("clientMacKey:{}", Arrays.toString(keyBlock[0]));
         log.debug("clientWriteKey:{}", Arrays.toString(keyBlock[2]));
         log.debug("ivParameter:{}", Arrays.toString(ivParameter));

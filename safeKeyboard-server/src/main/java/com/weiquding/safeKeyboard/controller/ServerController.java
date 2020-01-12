@@ -73,7 +73,7 @@ public class ServerController {
         log.debug("encryptedPwd:{}", Arrays.toString(cipherText));
         log.debug("macDigest:{}", Arrays.toString(macDigest));
         // 对称解密
-        byte[] encryptedPwd = AESUtil.decryptByAESKey(keyBlock[2], iv, cipherText);
+        byte[] encryptedPwd = AESUtil.AES_256_GCM_NoPadding.decryptByAESKey(keyBlock[2], iv, cipherText);
         // 验证摘要
         byte[] serverMacDigest = HmacUtil.getMacInstance(HmacUtil.HMAC_SHA_256, keyBlock[0]).doFinal(encryptedPwd);
         if (!Arrays.equals(macDigest, serverMacDigest)) {

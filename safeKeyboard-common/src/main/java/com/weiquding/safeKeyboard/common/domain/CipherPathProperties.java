@@ -23,6 +23,26 @@ public class CipherPathProperties {
     private String safeKeyboardCerPath;
 
     /**
+     * 客户端RSA私钥文件路径
+     */
+    private String clientRsaPrivateKeyPkcs1Path;
+
+    /**
+     * 服务端RSA公钥文件路径
+     */
+    private String serverRsaPublicKeyPkcs8Path;
+
+    /**
+     * 服务端RSA私钥文件路径
+     */
+    private String serverRsaPrivateKeyPkcs1Path;
+
+    /**
+     * 客户端RSA公钥文件路径
+     */
+    private String clientRsaPublicKeyPkcs8Path;
+
+    /**
      * 安全键盘密钥库密码
      */
     private String storePass;

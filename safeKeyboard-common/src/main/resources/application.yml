@@ -1,6 +1,10 @@
 cipher:
   safeKeyboardKeyStorePath: E:\\Java\\idea_workspaces\\SafeKeyboard\\safeKeyboard.keystore
   safeKeyboardCerPath: E:\\Java\\idea_workspaces\\SafeKeyboard\\safeKeyboard.cer
+  clientRsaPrivateKeyPkcs1Path: E:\Java\idea_workspaces\SafeKeyboard\safeKeyboard-client\src\main\resources\client_rsa_private_key_pkcs1.pem
+  serverRsaPublicKeyPkcs8Path: E:\Java\idea_workspaces\SafeKeyboard\safeKeyboard-client\src\main\resources\server_rsa_public_key_pkcs8.der
+  serverRsaPrivateKeyPkcs1Path: E:\Java\idea_workspaces\SafeKeyboard\safeKeyboard-server\src\main\resources\server_rsa_private_key_pkcs1.pem
+  clientRsaPublicKeyPkcs8Path: E:\Java\idea_workspaces\SafeKeyboard\safeKeyboard-client\src\main\resources\client_rsa_public_key_pkcs8.der
   alias: www.weiquding.com
   storePass: weiquding
   keyPass: weiquding
