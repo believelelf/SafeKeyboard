@@ -3,6 +3,7 @@ package com.weiquding.safeKeyboard.controller;
 import com.weiquding.safeKeyboard.common.annotation.DecryptSafeFields;
 import com.weiquding.safeKeyboard.common.annotation.EncryptSafeFields;
 import com.weiquding.safeKeyboard.common.cache.GuavaCache;
+import com.weiquding.safeKeyboard.common.cache.KeyCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
 import com.weiquding.safeKeyboard.common.exception.CipherRuntimeException;
 import com.weiquding.safeKeyboard.common.util.*;
@@ -19,9 +20,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.Resource;
 import javax.crypto.Mac;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +41,9 @@ public class ClientController {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Resource
+    private KeyCache keyCache;
 
     /**
      *
@@ -130,15 +137,15 @@ public class ClientController {
     }
 
     /**
-     *
      * 测试报文加密
+     *
      * @param sessionId
      * @param model
      * @param params
      */
     @EncryptSafeFields(fields = {"account", "toAccount", "tranAmount"})
     @RequestMapping("/confirm")
-    public Map<String, Object> confirm(String sessionId, Model model, @RequestParam Map<String, Object> params){
+    public Map<String, Object> confirm(String sessionId, Model model, @RequestParam Map<String, Object> params) {
         log.info("confirm execute..., args:[{}]", model);
         model.addAttribute("operation", "confirm");
         // 放置返回参数
@@ -151,13 +158,14 @@ public class ClientController {
 
     /**
      * 测试报文解密
+     *
      * @param sessionId
      * @param model
      * @param params
      */
     @DecryptSafeFields(allowUris = "/confirm")
     @RequestMapping("/submit")
-    public Map<String, Object> submit(String sessionId, Model model, @RequestParam Map<String, Object> params){
+    public Map<String, Object> submit(String sessionId, Model model, @RequestParam Map<String, Object> params) {
         log.info("submit execute...,args:[{}]", model);
         model.addAttribute("operation", "submit");
 
@@ -165,6 +173,34 @@ public class ClientController {
         Map<String, Object> returnMap = new HashMap<>();
         returnMap.putAll(model.asMap());
         return returnMap;
+    }
+
+    @SuppressWarnings("unchecked")
+    @RequestMapping("/secureMessage")
+    public Map<String, Object> secureMessage() {
+
+        String appId = "test_app_id";
+        PrivateKey privateKey = keyCache.getPrivateKeyByAppId(appId);
+        PublicKey publicKey = keyCache.getPublicKeyByAppId(appId);
+
+        Map<String, Object> params = new HashMap<>();
+        params.put(SecureUtil.APPID_KEY, appId);
+        params.put("className", this.getClass().getName());
+        log.info("加密前数据：[{}]", params);
+        Map<String, Object> retMap = SecureUtil.encryptAndSignature(privateKey, publicKey, params);
+        log.info("加密后数据：[{}]", retMap);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+        for (Map.Entry<String, Object> entry : retMap.entrySet()) {
+            map.add(entry.getKey(), entry.getValue());
+        }
+        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(map, headers);
+        Map<String, Object> retVal = restTemplate.postForObject("http://localhost:8082/secureMessage", request, Map.class);
+        log.info("解密前数据：[{}]", retVal);
+        retVal = SecureUtil.decryptAndVerifySign(privateKey, publicKey, retVal);
+        log.info("解密后数据：[{}]", retVal);
+        return retVal;
     }
 
 }

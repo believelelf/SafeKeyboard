@@ -1,5 +1,8 @@
 package com.weiquding.safeKeyboard.controller;
 
+import com.weiquding.safeKeyboard.cache.JvmKeyCache;
+import com.weiquding.safeKeyboard.common.annotation.DecryptAndVerifySign;
+import com.weiquding.safeKeyboard.common.annotation.EncryptAndSignature;
 import com.weiquding.safeKeyboard.common.cache.GuavaCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
 import com.weiquding.safeKeyboard.common.exception.CipherRuntimeException;
@@ -91,9 +94,19 @@ public class ServerController {
         pwd = null;
         boolean result = checkUserService.checkUserPassword(userMock.getUserIdBySessionId(sessionId), hashedPassword);
 
-       // 结果
+        // 结果
         Map<String, Object> retMap = new HashMap<>();
         retMap.put("result", result);
         return retMap;
+    }
+
+    @DecryptAndVerifySign
+    @EncryptAndSignature
+    @RequestMapping("/secureMessage")
+    public Map<String, Object> secureMessage(@RequestParam Map<String, Object> params) {
+        Map<String, Object> result = new HashMap<>();
+        result.put(SecureUtil.APPID_KEY, JvmKeyCache.TEST_APP_ID);
+        result.put("className", this.getClass().getName());
+        return result;
     }
 }
