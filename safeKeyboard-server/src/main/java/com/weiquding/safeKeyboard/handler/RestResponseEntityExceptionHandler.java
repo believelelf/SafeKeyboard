@@ -1,6 +1,6 @@
 package com.weiquding.safeKeyboard.handler;
 
-import com.weiquding.safeKeyboard.common.exception.CipherRuntimeException;
+import com.weiquding.safeKeyboard.common.exception.TranFailException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import java.util.Map;
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(value = {CipherRuntimeException.class})
+    @ExceptionHandler(value = {TranFailException.class})
     protected ResponseEntity<Object> handleCipherException(
             RuntimeException ex, WebRequest request) {
         Map<String, String> multiValueMap = new HashMap<>();

@@ -1,7 +1,7 @@
 package com.weiquding.safeKeyboard.common.util;
 
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
-import com.weiquding.safeKeyboard.common.exception.CipherRuntimeException;
+import com.weiquding.safeKeyboard.common.exception.SafeBPError;
 import org.apache.commons.codec.binary.Hex;
 
 import javax.crypto.SecretKeyFactory;
@@ -24,13 +24,14 @@ public class PBKDF2Util {
      * @return hashed password
      */
     public static String hashingPassword(String password) {
-       return hashingPassword(password, KeyInstance.PBKDF2_SLAT);
+        return hashingPassword(password, KeyInstance.PBKDF2_SLAT);
     }
+
     /**
      * 对密进行哈希操作
      *
      * @param password 明文密码
-     * @param slat 盐
+     * @param slat     盐
      * @return hashed password
      */
     public static String hashingPassword(String password, byte[] slat) {
@@ -40,7 +41,7 @@ public class PBKDF2Util {
             byte[] hash = factory.generateSecret(spec).getEncoded();
             return Hex.encodeHexString(hash);
         } catch (Exception e) {
-            throw new CipherRuntimeException("An error occurred while hashing the password", e);
+            throw SafeBPError.HASHING_PASSWORD.getInfo().initialize(e);
         }
     }
 

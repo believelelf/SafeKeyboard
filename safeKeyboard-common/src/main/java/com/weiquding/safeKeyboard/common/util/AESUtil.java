@@ -1,6 +1,6 @@
 package com.weiquding.safeKeyboard.common.util;
 
-import com.weiquding.safeKeyboard.common.exception.CipherRuntimeException;
+import com.weiquding.safeKeyboard.common.exception.SafeBPError;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.crypto.Cipher;
@@ -130,7 +130,7 @@ public class AESUtil {
             keyGenerator.init(bitLen, random);
             return keyGenerator.generateKey();
         } catch (NoSuchAlgorithmException e) {
-            throw new CipherRuntimeException("An error occurred while generating the AES key", e);
+            throw SafeBPError.GENERATING_AES_KEY.getInfo().initialize(e);
         }
     }
 
@@ -148,7 +148,7 @@ public class AESUtil {
             keyGenerator.init(bitLen, random);
             return keyGenerator.generateKey().getEncoded();
         } catch (NoSuchAlgorithmException e) {
-            throw new CipherRuntimeException("An error occurred while generating the AES key", e);
+            throw SafeBPError.GENERATING_AES_KEY.getInfo().initialize(e);
         }
     }
 
@@ -163,7 +163,7 @@ public class AESUtil {
         try {
             return new SecretKeySpec(encoded, ALGORITHM);
         } catch (Exception e) {
-            throw new CipherRuntimeException("An error occurred while restoring the AES key", e);
+            throw SafeBPError.GENERATING_AES_KEY.getInfo().initialize(e);
         }
     }
 
@@ -188,7 +188,7 @@ public class AESUtil {
             }
             return cipher;
         } catch (Exception e) {
-            throw new CipherRuntimeException("An error occurred while getting Cipher", e);
+            throw SafeBPError.GETTING_CIPHER.getInfo().initialize(e);
         }
     }
 
@@ -264,7 +264,7 @@ public class AESUtil {
             try {
                 return getCipher(false, CIPHER_ALGORITHM, encoded, new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv)).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for decryption", e);
+                throw SafeBPError.AES_DECRYPTION.getInfo().initialize(e);
             }
         }
 
@@ -280,7 +280,7 @@ public class AESUtil {
             try {
                 return getCipher(true, CIPHER_ALGORITHM, encoded, new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv)).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for encryption", e);
+                throw SafeBPError.AES_ENCRYPTION.getInfo().initialize(e);
             }
         }
     }
@@ -360,7 +360,7 @@ public class AESUtil {
             try {
                 return getCipher(false, CIPHER_ALGORITHM, encoded, AESUtil.ivParameter(iv)).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for decryption", e);
+                throw SafeBPError.AES_DECRYPTION.getInfo().initialize(e);
             }
         }
 
@@ -376,7 +376,7 @@ public class AESUtil {
             try {
                 return getCipher(false, CIPHER_ALGORITHM, encoded, DEFAULT_IV_PARAMETER_SPEC).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for decryption", e);
+                throw SafeBPError.AES_DECRYPTION.getInfo().initialize(e);
             }
         }
 
@@ -393,7 +393,7 @@ public class AESUtil {
             try {
                 return getCipher(true, CIPHER_ALGORITHM, encoded, AESUtil.ivParameter(iv)).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for encryption", e);
+                throw SafeBPError.AES_ENCRYPTION.getInfo().initialize(e);
             }
         }
 
@@ -409,7 +409,7 @@ public class AESUtil {
             try {
                 return getCipher(true, CIPHER_ALGORITHM, encoded, DEFAULT_IV_PARAMETER_SPEC).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for encryption", e);
+                throw SafeBPError.AES_ENCRYPTION.getInfo().initialize(e);
             }
         }
 
@@ -468,7 +468,7 @@ public class AESUtil {
             try {
                 return getCipher(false, CIPHER_ALGORITHM, encoded, AESUtil.ivParameter(iv)).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for decryption", e);
+                throw SafeBPError.AES_DECRYPTION.getInfo().initialize(e);
             }
         }
 
@@ -484,7 +484,7 @@ public class AESUtil {
             try {
                 return getCipher(false, CIPHER_ALGORITHM, encoded, DEFAULT_IV_PARAMETER_SPEC).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for decryption", e);
+                throw SafeBPError.AES_DECRYPTION.getInfo().initialize(e);
             }
         }
 
@@ -500,7 +500,7 @@ public class AESUtil {
             try {
                 return getCipher(true, CIPHER_ALGORITHM, encoded, AESUtil.ivParameter(iv)).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for encryption", e);
+                throw SafeBPError.AES_ENCRYPTION.getInfo().initialize(e);
             }
         }
 
@@ -516,7 +516,7 @@ public class AESUtil {
             try {
                 return getCipher(true, CIPHER_ALGORITHM, encoded, DEFAULT_IV_PARAMETER_SPEC).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for encryption", e);
+                throw SafeBPError.AES_ENCRYPTION.getInfo().initialize(e);
             }
         }
 
@@ -556,7 +556,7 @@ public class AESUtil {
             try {
                 return getCipher(false, CIPHER_ALGORITHM, encoded, null).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for decryption", e);
+                throw SafeBPError.AES_DECRYPTION.getInfo().initialize(e);
             }
         }
 
@@ -573,7 +573,7 @@ public class AESUtil {
             try {
                 return getCipher(true, CIPHER_ALGORITHM, encoded, null).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for encryption", e);
+                throw SafeBPError.AES_ENCRYPTION.getInfo().initialize(e);
             }
         }
     }
@@ -609,7 +609,7 @@ public class AESUtil {
             try {
                 return getCipher(false, CIPHER_ALGORITHM, encoded, null).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for decryption", e);
+                throw SafeBPError.AES_DECRYPTION.getInfo().initialize(e);
             }
         }
 
@@ -625,7 +625,7 @@ public class AESUtil {
             try {
                 return getCipher(true, CIPHER_ALGORITHM, encoded, null).doFinal(data);
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while using the AES key for encryption", e);
+                throw SafeBPError.AES_ENCRYPTION.getInfo().initialize(e);
             }
         }
     }

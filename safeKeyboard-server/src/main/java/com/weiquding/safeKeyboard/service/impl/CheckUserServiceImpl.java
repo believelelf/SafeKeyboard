@@ -1,6 +1,6 @@
 package com.weiquding.safeKeyboard.service.impl;
 
-import com.weiquding.safeKeyboard.common.exception.CipherRuntimeException;
+import com.weiquding.safeKeyboard.common.exception.SafeBPError;
 import com.weiquding.safeKeyboard.dao.mapper.UserPasswordMapper;
 import com.weiquding.safeKeyboard.dao.model.UserPasswordModel;
 import com.weiquding.safeKeyboard.service.CheckUserService;
@@ -17,7 +17,7 @@ public class CheckUserServiceImpl implements CheckUserService {
     public boolean checkUserPassword(String userId, String hashedPassword) {
         UserPasswordModel model = userPasswordMapper.selectOneByUserId(userId);
         if (model.isStatusError()) {
-            throw new CipherRuntimeException("Your account has been locked, please try again tomorrow.");
+            throw SafeBPError.PASSWORD_LOCKED.getInfo().initialize();
         }
         if (hashedPassword.equals(model.getPassword())) {
             // 密码比较成功
@@ -26,16 +26,12 @@ public class CheckUserServiceImpl implements CheckUserService {
         } else if (model.lastVerifyDateIsToday()) {
             //  密码比较不成功，且当日已经校验过
             userPasswordMapper.updateUserPassword(model);
-            throw new CipherRuntimeException(
-                    String.format("The password you entered is incorrect, %d chances are left", 5 - model.getErrortimes())
-            );
+            throw SafeBPError.PASSWORD_INCORRECT.getInfo().initialize(5 - model.getErrortimes());
         } else {
             //  密码比较不成功，且当日为初次校验
             model.setErrortimes(1);
             userPasswordMapper.updateUserPassword(model);
-            throw new CipherRuntimeException(
-                    String.format("The password you entered is incorrect, %d chances are left", 5)
-            );
+            throw SafeBPError.PASSWORD_INCORRECT.getInfo().initialize(5);
         }
         return true;
     }
@@ -44,13 +40,13 @@ public class CheckUserServiceImpl implements CheckUserService {
     public boolean checkPasswordRule(String plainPassword) {
         char[] pwds = plainPassword.toCharArray();
         if (pwds.length != 6) {
-            throw new CipherRuntimeException("Incorrect password length");
+            throw SafeBPError.INCORRECT_PASSWORD_LENGTH.getInfo().initialize(pwds.length);
         }
         int count = 0;
         char last = 'c';
         for (char c : pwds) {
             if (c > '9' || c < '0') {
-                throw new CipherRuntimeException("The password contains illegal characters");
+                throw SafeBPError.ILLEGAL_CHARACTERS.getInfo().initialize();
             }
             if (c == last || c == last + 1) {
                 count++;
@@ -58,7 +54,7 @@ public class CheckUserServiceImpl implements CheckUserService {
             last = c;
         }
         if (count == 5) {
-            throw new CipherRuntimeException("The password consists entirely of equal characters or incrementing sequences");
+            throw SafeBPError.INCREMENTING_SEQUENCES.getInfo().initialize();
         }
         return true;
     }

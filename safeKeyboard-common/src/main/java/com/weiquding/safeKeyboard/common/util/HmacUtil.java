@@ -1,6 +1,6 @@
 package com.weiquding.safeKeyboard.common.util;
 
-import com.weiquding.safeKeyboard.common.exception.CipherRuntimeException;
+import com.weiquding.safeKeyboard.common.exception.SafeBPError;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -16,8 +16,9 @@ public class HmacUtil {
 
     /**
      * 获取mac实例
+     *
      * @param algorithm 算法
-     * @param key 密钥
+     * @param key       密钥
      * @return Mac
      */
     public static Mac getMacInstance(String algorithm, byte[] key) {
@@ -30,7 +31,7 @@ public class HmacUtil {
                 mac.init(keySpec);
                 return mac;
             } catch (Exception e) {
-                throw new CipherRuntimeException("An error occurred while getting a MAC instance", e);
+                throw SafeBPError.MAC_INSTANCE.getInfo().initialize(e);
             }
         }
     }

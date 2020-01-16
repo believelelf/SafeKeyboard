@@ -5,7 +5,7 @@ import com.weiquding.safeKeyboard.common.annotation.EncryptSafeFields;
 import com.weiquding.safeKeyboard.common.cache.GuavaCache;
 import com.weiquding.safeKeyboard.common.cache.KeyCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
-import com.weiquding.safeKeyboard.common.exception.CipherRuntimeException;
+import com.weiquding.safeKeyboard.common.exception.SafeBPError;
 import com.weiquding.safeKeyboard.common.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +63,7 @@ public class ClientController {
         String sign = retVal.get("sign");
         boolean verify = RSAUtil.verifySignByRSAPublicKey(KeyInstance.RSA_PUBLIC_KEY, RNS.getBytes(), Base64.getDecoder().decode(sign));
         if (!verify) {
-            throw new CipherRuntimeException("Signature corrupted");
+            throw SafeBPError.SIGNATURE_CORRUPTED.getInfo().initialize();
         }
         rncAndPMS.put("RNS", RNS);
         rncAndPMS.remove("cipherText");

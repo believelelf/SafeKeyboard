@@ -1,4 +1,4 @@
-package com.weiquding.safeKeyboard.config;
+package com.weiquding.safeKeyboard.common.config;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;

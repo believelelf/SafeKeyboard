@@ -1,6 +1,6 @@
 package com.weiquding.safeKeyboard.common.util;
 
-import com.weiquding.safeKeyboard.common.exception.CipherRuntimeException;
+import com.weiquding.safeKeyboard.common.exception.SafeBPError;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -15,6 +15,7 @@ import java.security.interfaces.RSAPublicKey;
 
 /**
  * 密钥库及证书操作
+ *
  * @author believeyourself
  */
 public class KeystoreUtil {
@@ -40,7 +41,7 @@ public class KeystoreUtil {
             keyStore.load(inputStream, storePass.toCharArray());
             return keyStore;
         } catch (Exception e) {
-            throw new CipherRuntimeException("An error occurred while obtaining an instance of keystore ", e);
+            throw SafeBPError.KEYSTORE_INSTANCE.getInfo().initialize(e);
         }
     }
 
@@ -56,7 +57,7 @@ public class KeystoreUtil {
         try {
             return (RSAPrivateKey) keyStore.getKey(alias, keyPass.toCharArray());
         } catch (Exception e) {
-            throw new CipherRuntimeException("An error occurred while obtaining an instance of RSAPrivateKey ", e);
+            throw SafeBPError.RSA_PRIVATEKEY_INSTANCE.getInfo().initialize(e);
         }
     }
 
@@ -71,7 +72,7 @@ public class KeystoreUtil {
         try {
             return keyStore.getCertificate(alias);
         } catch (KeyStoreException e) {
-            throw new CipherRuntimeException("An error occurred while obtaining an instance of Certificate ", e);
+            throw SafeBPError.CERTIFICATE_INSTANCE.getInfo().initialize(e);
         }
     }
 
@@ -89,7 +90,7 @@ public class KeystoreUtil {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             return cf.generateCertificate(bis);
         } catch (Exception e) {
-            throw new CipherRuntimeException("An error occurred while loading Certificate ", e);
+            throw SafeBPError.CERTIFICATE_LOADING.getInfo().initialize(e);
         }
     }
 
