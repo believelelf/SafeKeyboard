@@ -1,7 +1,7 @@
 package com.weiquding.safeKeyboard.common.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.weiquding.safeKeyboard.common.exception.SafeBPError;
+import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
 
@@ -55,7 +55,7 @@ public class SecureUtil {
         try {
             data = JsonUtil.getObjectMapper().writeValueAsBytes(message);
         } catch (JsonProcessingException e) {
-            throw SafeBPError.PROCESSING_JSON_DATA.getInfo().initialize(e);
+            throw BaseBPError.PROCESSING_JSON_DATA.getInfo().initialize(e);
         }
         byte[] encryptedData = AESUtil.AES_256_CBC_PKCS5Padding.encryptByAESKey(secretKey, data);
 
@@ -108,7 +108,7 @@ public class SecureUtil {
         try {
             return JsonUtil.getObjectMapper().readValue(data, Map.class);
         } catch (IOException e) {
-            throw SafeBPError.PROCESSING_JSON_DATA.getInfo().initialize(e);
+            throw BaseBPError.PROCESSING_JSON_DATA.getInfo().initialize(e);
         }
     }
 

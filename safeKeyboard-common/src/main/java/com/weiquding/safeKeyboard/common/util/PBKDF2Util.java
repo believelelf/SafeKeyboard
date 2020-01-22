@@ -1,7 +1,7 @@
 package com.weiquding.safeKeyboard.common.util;
 
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
-import com.weiquding.safeKeyboard.common.exception.SafeBPError;
+import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import org.apache.commons.codec.binary.Hex;
 
 import javax.crypto.SecretKeyFactory;
@@ -41,7 +41,7 @@ public class PBKDF2Util {
             byte[] hash = factory.generateSecret(spec).getEncoded();
             return Hex.encodeHexString(hash);
         } catch (Exception e) {
-            throw SafeBPError.HASHING_PASSWORD.getInfo().initialize(e);
+            throw BaseBPError.HASHING_PASSWORD.getInfo().initialize(e);
         }
     }
 

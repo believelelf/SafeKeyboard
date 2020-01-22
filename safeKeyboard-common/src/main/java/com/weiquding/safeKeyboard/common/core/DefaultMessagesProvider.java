@@ -1,13 +1,19 @@
 package com.weiquding.safeKeyboard.common.core;
 
+import com.weiquding.safeKeyboard.common.exception.ExceptionUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * 默认消息束提供者
@@ -24,10 +30,6 @@ public class DefaultMessagesProvider implements MessagesProvider {
      */
     private MessageSource defaultMessageSource;
     /**
-     * 国际化文本消息束
-     */
-    private MessageSource valuesMessageSource;
-    /**
      * 错误信息消息束
      */
     private MessageSource errorMessageSource;
@@ -40,10 +42,6 @@ public class DefaultMessagesProvider implements MessagesProvider {
         return defaultMessageSource;
     }
 
-    public MessageSource getValuesMessageSource() {
-        return valuesMessageSource;
-    }
-
     public MessageSource getErrorMessageSource() {
         return errorMessageSource;
     }
@@ -54,22 +52,65 @@ public class DefaultMessagesProvider implements MessagesProvider {
 
     @Override
     public Object resolveError(Throwable th, Locale locale) {
-        return null;
+        // 检查是否包装异常
+        if (ExceptionUtil.isWrapped(th)) {
+            th = th.getCause();
+        }
+        // 检查特定异常：参数校验异常
+        if (th instanceof MethodArgumentNotValidException) {
+            return resolveMessageCode(errorMessageSource, ((MethodArgumentNotValidException) th).getBindingResult().getFieldError(), locale);
+        }
+        if (th instanceof ConstraintViolationException) {
+            ConstraintViolationException cve = (ConstraintViolationException) th;
+            Set<ConstraintViolation<?>> cvs = cve.getConstraintViolations();
+            if (cvs != null && !cvs.isEmpty()) {
+                ConstraintViolation<?> constraintViolation = cvs.iterator().next();
+                return resolveMessageCode(errorMessageSource, constraintViolation.getPropertyPath().toString(), null, locale, defaultErrorKey, constraintViolation.getMessage());
+            }
+        }
+        //  检查MessageSourceResolvable类型异常
+        if (th instanceof MessageSourceResolvable) {
+            MessageSourceResolvable msr = (MessageSourceResolvable) th;
+            String[] codes = msr.getCodes();
+            String code = codes != null && codes.length > 0 ? codes[0] : null;
+            return resolveMessageCode(errorMessageSource, code, msr.getArguments(), locale, defaultErrorKey, msr.getDefaultMessage());
+        }
+        // 根据Throwable解析错误信息
+        String errorMsg = null;
+        String message = th.getMessage();
+        if (StringUtils.hasText(message)) {
+            errorMsg = resolveMessageCode(errorMessageSource, message, null, locale);
+        }
+        if (errorMsg != null) {
+            return errorMsg;
+        }
+        message = th.getClass().getName();
+        errorMsg = resolveMessageCode(errorMessageSource, message, null, locale);
+        if (errorMsg != null) {
+            return errorMsg;
+        }
+        message = this.defaultErrorKey;
+        errorMsg = resolveMessageCode(errorMessageSource, message, null, locale);
+        if (errorMsg != null) {
+            return errorMsg;
+        }
+        return th.getClass().getName() + (th.getMessage() != null ? ":" + th.getMessage() : "");
     }
 
     @Override
     public Object resolveError(String errorCode, Object[] arguments, String defaultMessage, Locale locale) {
-        return null;
+        String message = resolveMessageCode(errorMessageSource, errorCode, arguments, locale);
+        return message == null ? defaultMessage : message;
     }
 
     @Override
     public String getMessage(String key, Locale locale) {
-        return null;
+        return resolveMessageCode(defaultMessageSource, key, null, locale, null, key);
     }
 
     @Override
     public String getMessage(String key, Object[] arguments, Locale locale) {
-        return null;
+        return resolveMessageCode(defaultMessageSource, key, arguments, locale, null, key);
     }
 
 

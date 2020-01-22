@@ -1,6 +1,6 @@
 package com.weiquding.safeKeyboard.common.util;
 
-import com.weiquding.safeKeyboard.common.exception.SafeBPError;
+import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -31,7 +31,7 @@ public class HmacUtil {
                 mac.init(keySpec);
                 return mac;
             } catch (Exception e) {
-                throw SafeBPError.MAC_INSTANCE.getInfo().initialize(e);
+                throw BaseBPError.MAC_INSTANCE.getInfo().initialize(e);
             }
         }
     }

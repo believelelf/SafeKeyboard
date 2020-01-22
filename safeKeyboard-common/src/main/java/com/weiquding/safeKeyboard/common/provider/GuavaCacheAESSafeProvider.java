@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weiquding.safeKeyboard.common.annotation.DecryptSafeFields;
 import com.weiquding.safeKeyboard.common.annotation.EncryptSafeFields;
 import com.weiquding.safeKeyboard.common.cache.GuavaCache;
-import com.weiquding.safeKeyboard.common.exception.SafeBPError;
+import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import com.weiquding.safeKeyboard.common.util.AESUtil;
 import com.weiquding.safeKeyboard.common.util.Base64;
 import com.weiquding.safeKeyboard.common.util.RandomUtil;
@@ -56,7 +56,7 @@ public class GuavaCacheAESSafeProvider implements SafeProvider {
             System.arraycopy(encryptedMsg, 0, newEncryptedMsg, iv.length, encryptedMsg.length);
             return Base64.getUrlEncoder().encodeToString(newEncryptedMsg);
         } catch (JsonProcessingException e) {
-            throw SafeBPError.PROCESSING_JSON_DATA.getInfo().initialize(e);
+            throw BaseBPError.PROCESSING_JSON_DATA.getInfo().initialize(e);
         }
     }
 
@@ -72,7 +72,7 @@ public class GuavaCacheAESSafeProvider implements SafeProvider {
         String cipherKey = sessionId + ":" + CIPHER_FIELD;
         Map<String, String> cipherMap = GuavaCache.CLIENT_CACHE.getIfPresent(cipherKey);
         if (cipherMap == null) {
-            throw SafeBPError.ENCRYPTION_KEY.getInfo().initialize();
+            throw BaseBPError.ENCRYPTION_KEY.getInfo().initialize();
         }
         byte[] cipher = Base64.getDecoder().decode(cipherMap.get(CIPHER_FIELD));
         byte[] decryptedMsg = AESUtil.AES_256_GCM_NoPadding.decryptByAESKey(cipher, iv, encryptedMsg);
@@ -81,11 +81,11 @@ public class GuavaCacheAESSafeProvider implements SafeProvider {
             Map<String, Object> params = new ObjectMapper().readValue(decryptedMsg, Map.class);
             boolean isAllowUri = checkAllowUri(params.get(ALLOW_URI), metadata.allowUris());
             if (!isAllowUri) {
-                throw SafeBPError.ALLOW_URI.getInfo().initialize();
+                throw BaseBPError.ALLOW_URI.getInfo().initialize();
             }
             return params;
         } catch (IOException e) {
-            throw SafeBPError.PROCESSING_JSON_DATA.getInfo().initialize(e);
+            throw BaseBPError.PROCESSING_JSON_DATA.getInfo().initialize(e);
         }
 
     }

@@ -1,6 +1,6 @@
 package com.weiquding.safeKeyboard.common.util;
 
-import com.weiquding.safeKeyboard.common.exception.SafeBPError;
+import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 
 import javax.crypto.Cipher;
 import java.security.Signature;
@@ -37,7 +37,7 @@ public class RSAUtil {
             sign.update(data);
             return sign.sign();
         } catch (Exception e) {
-            throw SafeBPError.SIGNING.getInfo().initialize(e);
+            throw BaseBPError.SIGNING.getInfo().initialize(e);
         }
     }
 
@@ -56,7 +56,7 @@ public class RSAUtil {
             signature.update(data);
             return signature.verify(sign);
         } catch (Exception e) {
-            throw SafeBPError.VERIFY_SIGN.getInfo().initialize(e);
+            throw BaseBPError.VERIFY_SIGN.getInfo().initialize(e);
         }
     }
 
@@ -74,7 +74,7 @@ public class RSAUtil {
             byte[] bytes = cipher.doFinal(data);
             return bytes;
         } catch (Exception e) {
-            throw SafeBPError.RSA_ENCRYPTION.getInfo().initialize(e);
+            throw BaseBPError.RSA_ENCRYPTION.getInfo().initialize(e);
         }
     }
 
@@ -92,7 +92,7 @@ public class RSAUtil {
             byte[] bytes = cipher.doFinal(data);
             return bytes;
         } catch (Exception e) {
-            throw SafeBPError.RSA_DECRYPTION.getInfo().initialize(e);
+            throw BaseBPError.RSA_DECRYPTION.getInfo().initialize(e);
         }
     }
 

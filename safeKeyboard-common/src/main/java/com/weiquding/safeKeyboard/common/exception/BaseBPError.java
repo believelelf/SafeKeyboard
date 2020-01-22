@@ -7,7 +7,7 @@ package com.weiquding.safeKeyboard.common.exception;
  * @version V1.0
  * @date 2020/1/16
  */
-public enum SafeBPError {
+public enum BaseBPError {
 
     /**
      * 错误信息
@@ -46,7 +46,7 @@ public enum SafeBPError {
 
     private ErrorInfo errorInfo;
 
-    private SafeBPError(String code, String defaultMsg) {
+    private BaseBPError(String code, String defaultMsg) {
         this.errorInfo = ErrorInfo.item(code, defaultMsg);
     }
 

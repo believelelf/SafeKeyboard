@@ -1,6 +1,6 @@
 package com.weiquding.safeKeyboard.common.util;
 
-import com.weiquding.safeKeyboard.common.exception.SafeBPError;
+import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -25,7 +25,7 @@ public class MD5Util {
             messageDigest = MessageDigest.getInstance(ALGORITHM);
             return messageDigest.digest(data);
         } catch (NoSuchAlgorithmException e) {
-            throw SafeBPError.NO_SUCH_ALGORITHM.getInfo().initialize(e);
+            throw BaseBPError.NO_SUCH_ALGORITHM.getInfo().initialize(e);
         }
     }
 }

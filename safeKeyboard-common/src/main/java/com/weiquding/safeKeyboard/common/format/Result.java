@@ -1,5 +1,6 @@
 package com.weiquding.safeKeyboard.common.format;
 
+import com.weiquding.safeKeyboard.common.exception.ErrorDetail;
 import lombok.Data;
 
 /**
@@ -12,23 +13,27 @@ import lombok.Data;
 @Data
 public final class Result<T> {
 
-    public static final String NORMAL_CODE = "SAFEBP0000";
-
     private boolean success = true;
-    private String code = NORMAL_CODE;
-    private String errorMsg;
+    private ErrorDetail head;
     private T data;
 
     public static <T> Result success(T data) {
         Result<T> result = new Result<>();
+        result.setHead(new ErrorDetail());
         result.setData(data);
         return result;
     }
 
-    public static <T> Result fail(String code, String errorMsg) {
+    public static <T> Result fail(String code, String errorMsg, String cause) {
         Result<T> result = new Result<>();
-        result.setCode(code);
-        result.setErrorMsg(errorMsg);
+        result.setHead(new ErrorDetail(code, errorMsg, cause, ErrorDetail.Severity.EXCEPTION));
+        result.setSuccess(false);
+        return result;
+    }
+
+    public static <T> Result fail(ErrorDetail errorDetail) {
+        Result<T> result = new Result<>();
+        result.setHead(errorDetail);
         result.setSuccess(false);
         return result;
     }

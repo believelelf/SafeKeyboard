@@ -1,6 +1,6 @@
 package com.weiquding.safeKeyboard.common.util;
 
-import com.weiquding.safeKeyboard.common.exception.SafeBPError;
+import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URLEncoder;
@@ -69,7 +69,7 @@ public class AppSecretUtil {
                 }
             }
         } catch (Exception e) {
-            throw SafeBPError.ORGANIZE_PARAMETERS.getInfo().initialize(e);
+            throw BaseBPError.ORGANIZE_PARAMETERS.getInfo().initialize(e);
         }
 
         //  增加随机量
@@ -91,7 +91,7 @@ public class AppSecretUtil {
                 }
             }
         } catch (Exception e) {
-            throw SafeBPError.SPLICING_PARAMETERS.getInfo().initialize(e);
+            throw BaseBPError.SPLICING_PARAMETERS.getInfo().initialize(e);
         }
 
         // 生成摘要值

@@ -1,6 +1,6 @@
 package com.weiquding.safeKeyboard.common.util;
 
-import com.weiquding.safeKeyboard.common.exception.SafeBPError;
+import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -143,7 +143,7 @@ public class PemOrDerUtil {
                 throw new IllegalStateException("Illegal State: " + object);
             }
         } catch (IOException | OperatorCreationException | PKCSException e) {
-            throw SafeBPError.READING_RSAPRIVATEKEY.getInfo().initialize(e);
+            throw BaseBPError.READING_RSAPRIVATEKEY.getInfo().initialize(e);
         }
     }
 
@@ -173,7 +173,7 @@ public class PemOrDerUtil {
                 throw new IllegalStateException("Illegal State: " + object);
             }
         } catch (IOException e) {
-            throw SafeBPError.READING_RSAPUBLICKEY.getInfo().initialize(e);
+            throw BaseBPError.READING_RSAPUBLICKEY.getInfo().initialize(e);
         }
     }
 
@@ -191,7 +191,7 @@ public class PemOrDerUtil {
             KeyFactory kf = KeyFactory.getInstance(ALGORITHM);
             return kf.generatePrivate(spec);
         } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw SafeBPError.READING_RSAPRIVATEKEY.getInfo().initialize(e);
+            throw BaseBPError.READING_RSAPRIVATEKEY.getInfo().initialize(e);
         }
     }
 
@@ -215,7 +215,7 @@ public class PemOrDerUtil {
             PrivateKeyInfo keyInfo = pkcs8EncryptedPrivateKeyInfo.decryptPrivateKeyInfo(decryptionProv);
             return converter.getPrivateKey(keyInfo);
         } catch (IOException | OperatorCreationException | PKCSException e) {
-            throw SafeBPError.READING_RSAPRIVATEKEY.getInfo().initialize(e);
+            throw BaseBPError.READING_RSAPRIVATEKEY.getInfo().initialize(e);
         }
     }
 
@@ -233,7 +233,7 @@ public class PemOrDerUtil {
             KeyFactory kf = KeyFactory.getInstance(ALGORITHM);
             return kf.generatePublic(spec);
         } catch (IOException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw SafeBPError.READING_RSAPUBLICKEY.getInfo().initialize(e);
+            throw BaseBPError.READING_RSAPUBLICKEY.getInfo().initialize(e);
         }
     }
 

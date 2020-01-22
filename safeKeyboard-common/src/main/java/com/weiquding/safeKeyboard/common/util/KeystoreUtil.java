@@ -1,6 +1,6 @@
 package com.weiquding.safeKeyboard.common.util;
 
-import com.weiquding.safeKeyboard.common.exception.SafeBPError;
+import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -41,7 +41,7 @@ public class KeystoreUtil {
             keyStore.load(inputStream, storePass.toCharArray());
             return keyStore;
         } catch (Exception e) {
-            throw SafeBPError.KEYSTORE_INSTANCE.getInfo().initialize(e);
+            throw BaseBPError.KEYSTORE_INSTANCE.getInfo().initialize(e);
         }
     }
 
@@ -57,7 +57,7 @@ public class KeystoreUtil {
         try {
             return (RSAPrivateKey) keyStore.getKey(alias, keyPass.toCharArray());
         } catch (Exception e) {
-            throw SafeBPError.RSA_PRIVATEKEY_INSTANCE.getInfo().initialize(e);
+            throw BaseBPError.RSA_PRIVATEKEY_INSTANCE.getInfo().initialize(e);
         }
     }
 
@@ -72,7 +72,7 @@ public class KeystoreUtil {
         try {
             return keyStore.getCertificate(alias);
         } catch (KeyStoreException e) {
-            throw SafeBPError.CERTIFICATE_INSTANCE.getInfo().initialize(e);
+            throw BaseBPError.CERTIFICATE_INSTANCE.getInfo().initialize(e);
         }
     }
 
@@ -90,7 +90,7 @@ public class KeystoreUtil {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             return cf.generateCertificate(bis);
         } catch (Exception e) {
-            throw SafeBPError.CERTIFICATE_LOADING.getInfo().initialize(e);
+            throw BaseBPError.CERTIFICATE_LOADING.getInfo().initialize(e);
         }
     }
 

@@ -5,7 +5,7 @@ import com.weiquding.safeKeyboard.common.annotation.DecryptAndVerifySign;
 import com.weiquding.safeKeyboard.common.annotation.EncryptAndSignature;
 import com.weiquding.safeKeyboard.common.cache.GuavaCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
-import com.weiquding.safeKeyboard.common.exception.SafeBPError;
+import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import com.weiquding.safeKeyboard.common.util.*;
 import com.weiquding.safeKeyboard.mock.UserMock;
 import com.weiquding.safeKeyboard.service.CheckUserService;
@@ -80,7 +80,7 @@ public class ServerController {
         // 验证摘要
         byte[] serverMacDigest = HmacUtil.getMacInstance(HmacUtil.HMAC_SHA_256, keyBlock[0]).doFinal(encryptedPwd);
         if (!Arrays.equals(macDigest, serverMacDigest)) {
-            throw SafeBPError.DIGEST.getInfo().initialize();
+            throw BaseBPError.DIGEST.getInfo().initialize();
         }
         // 取出真实的密码
         byte[] pwdBytes = new byte[encryptedPwd.length - 32];
