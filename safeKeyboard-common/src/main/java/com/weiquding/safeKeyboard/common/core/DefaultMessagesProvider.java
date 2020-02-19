@@ -36,7 +36,7 @@ public class DefaultMessagesProvider implements MessagesProvider {
     /**
      * 默认错误码，用于无法解析错误码时使用
      */
-    private String defaultErrorKey;
+    private String defaultMappingCode;
 
     public MessageSource getDefaultMessageSource() {
         return defaultMessageSource;
@@ -47,7 +47,19 @@ public class DefaultMessagesProvider implements MessagesProvider {
     }
 
     public String getDefaultErrorKey() {
-        return defaultErrorKey;
+        return defaultMappingCode;
+    }
+
+    public void setDefaultMessageSource(MessageSource defaultMessageSource) {
+        this.defaultMessageSource = defaultMessageSource;
+    }
+
+    public void setErrorMessageSource(MessageSource errorMessageSource) {
+        this.errorMessageSource = errorMessageSource;
+    }
+
+    public void setDefaultMappingCode(String defaultMappingCode) {
+        this.defaultMappingCode = defaultMappingCode;
     }
 
     @Override
@@ -65,7 +77,7 @@ public class DefaultMessagesProvider implements MessagesProvider {
             Set<ConstraintViolation<?>> cvs = cve.getConstraintViolations();
             if (cvs != null && !cvs.isEmpty()) {
                 ConstraintViolation<?> constraintViolation = cvs.iterator().next();
-                return resolveMessageCode(errorMessageSource, constraintViolation.getPropertyPath().toString(), null, locale, defaultErrorKey, constraintViolation.getMessage());
+                return resolveMessageCode(errorMessageSource, constraintViolation.getPropertyPath().toString(), null, locale, defaultMappingCode, constraintViolation.getMessage());
             }
         }
         //  检查MessageSourceResolvable类型异常
@@ -73,7 +85,7 @@ public class DefaultMessagesProvider implements MessagesProvider {
             MessageSourceResolvable msr = (MessageSourceResolvable) th;
             String[] codes = msr.getCodes();
             String code = codes != null && codes.length > 0 ? codes[0] : null;
-            return resolveMessageCode(errorMessageSource, code, msr.getArguments(), locale, defaultErrorKey, msr.getDefaultMessage());
+            return resolveMessageCode(errorMessageSource, code, msr.getArguments(), locale, defaultMappingCode, msr.getDefaultMessage());
         }
         // 根据Throwable解析错误信息
         String errorMsg = null;
@@ -89,7 +101,7 @@ public class DefaultMessagesProvider implements MessagesProvider {
         if (errorMsg != null) {
             return errorMsg;
         }
-        message = this.defaultErrorKey;
+        message = this.defaultMappingCode;
         errorMsg = resolveMessageCode(errorMessageSource, message, null, locale);
         if (errorMsg != null) {
             return errorMsg;

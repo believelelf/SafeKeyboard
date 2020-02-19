@@ -13,7 +13,7 @@ public enum BaseBPError {
      * 错误信息
      */
     UNKNOWN("BASEBP0001", "Unknown system error, please contact system administrator"),
-    KEYSTORE_INSTANCE("BASEBP0002", "An error occurred while obtaining an instance of keystore"),
+    TIMEOUT("BASEBP0002", "The system is busy, please check the details and confirm the result"),
     RSA_PRIVATEKEY_INSTANCE("BASEBP0003", "An error occurred while obtaining an instance of RSAPrivateKey"),
     CERTIFICATE_INSTANCE("BASEBP0004", "An error occurred while obtaining an instance of Certificate"),
     CERTIFICATE_LOADING("BASEBP0005", "An error occurred while loading Certificate"),
@@ -42,6 +42,7 @@ public enum BaseBPError {
     INCREMENTING_SEQUENCES("BASEBP0028", "The password consists entirely of equal characters or incrementing sequences"),
     DIGEST("BASEBP0029", "Password digest authentication failed"),
     SIGNATURE_CORRUPTED("BASEBP0030", "Signature corrupted"),
+    KEYSTORE_INSTANCE("BASEBP0031", "An error occurred while obtaining an instance of keystore"),
     ;
 
     private ErrorInfo errorInfo;

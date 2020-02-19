@@ -52,6 +52,7 @@ public class DefaultExceptionHandler implements ExceptionHandler, InitializingBe
             String defaultMessage = null;
             Object[] arguments = null;
             String className = throwable.getClass().getName();
+            // 异常类映射到错误码
             errorCode = (String) messagesProvider.resolveError(className, null, null, locale);
             if (errorCode == null || errorCode.equals(className)) {
                 errorCode = null;

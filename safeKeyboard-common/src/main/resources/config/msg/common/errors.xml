@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <!-- 异常类映射到错误码 -->
+    <entry key="org.springframework.dao.DataAccessException">BASEBP0001</entry>
+    <entry key="org.apache.ibatis.exceptions.PersistenceException.PersistenceException">BASEBP0001</entry>
+    <entry key="java.util.concurrent.TimeoutException">BASEBP0002</entry>
+
+    <!-- 错误码映射到错误信息 -->
+    <entry key="BASEBP0001">未知系统异常，请联系系统管理员。</entry>
+    <entry key="BASEBP0025">您输入的密码不正确，今日还剩{0}次机会。</entry>
+    <entry key="BASEBP0026">您输入密码的长度不正确，当前密码长度为{0}。</entry>
+
+</properties>
