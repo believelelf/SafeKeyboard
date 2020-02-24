@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <!-- key~text -->
+    <entry key="loginForm.name.input">请输入用户名。</entry>
+</properties>

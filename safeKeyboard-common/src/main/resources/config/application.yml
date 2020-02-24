@@ -10,3 +10,18 @@ cipher:
   keyPass: weiquding
   slat: Kxi1PnJd8JqcOKoX3fv/aQ==
 debug: true
+#
+# {@link org.springframework.core.io.ResourceLoader#getResource()}
+# <p>The handle should always be a reusable resource descriptor,
+#	 * allowing for multiple {@link Resource#getInputStream()} calls.
+#<p>
+#  <ul>
+#  * <li>Must support fully qualified URLs, e.g. "file:C:/test.dat".
+#  * <li>Must support classpath pseudo-URLs, e.g. "classpath:test.dat".
+#  * <li>Should support relative file paths, e.g. "WEB-INF/test.dat".
+#  * (This will be implementation-specific, typically provided by an
+#  * ApplicationContext implementation.)
+#  * </ul>
+base:
+  messages:
+    default-mapping-code: BASEBP0001

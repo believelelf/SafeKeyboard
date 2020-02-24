@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+    <!-- 错误码映射到错误信息 -->
+    <entry key="BASEBP0024">Your account has been locked, please try again tomorrow.</entry>
+
+</properties>

@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS `error_messages`;
-CREATE TABLE `error_messages` (
+DROP TABLE IF EXISTS `errors_messages`;
+CREATE TABLE `errors_messages` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自增主键',
   `locale` varchar(12) NOT NULL COMMENT '语言代码',
   `code` varchar(360)  NOT NULL COMMENT '错误码或异常名',
@@ -9,7 +9,7 @@ CREATE TABLE `error_messages` (
   `createtime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updatetime` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `error_messages_uk` (`locale`,`code`)
+  UNIQUE KEY `errors_messages_uk` (`locale`,`code`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COMMENT='错误信息表';
 
 DROP TABLE IF EXISTS `values_messages`;

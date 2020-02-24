@@ -1,0 +1,14 @@
+server:
+  port: 8081
+
+application:
+  appId: test_app_id
+base:
+  messages:
+    type: bundle # bundle or database
+    values-bundles:
+      basename: classpath:config/msg/client-values,classpath:config/msg/values
+      cache-duration: PT1H
+    errors-bundles:
+      basename: classpath:config/msg/client-errors,classpath:config/msg/errors
+      cache-duration: PT1H

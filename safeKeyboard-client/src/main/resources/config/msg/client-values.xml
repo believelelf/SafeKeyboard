@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <!-- key~text -->
+    <entry key="loginForm.email.input">请输入邮箱地址。</entry>
+</properties>
