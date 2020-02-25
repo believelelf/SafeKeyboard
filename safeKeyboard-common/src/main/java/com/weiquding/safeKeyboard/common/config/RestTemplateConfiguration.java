@@ -60,11 +60,11 @@ public class RestTemplateConfiguration {
      */
     private static final int MAX_IDLE_TIME = 180;
 
-    @Value("${base.http.enableProxy}")
+    @Value("${base.http.enableProxy:false}")
     private boolean enableProxy;
-    @Value("${kht.http.proxy.hostname}")
+    @Value("${base.http.proxy.hostname:localhost}")
     private String proxyHost;
-    @Value("${kht.http.proxy.port}")
+    @Value("${base.http.proxy.port:8080}")
     private int proxyPost;
 
     /**

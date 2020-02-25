@@ -39,7 +39,7 @@ public class DefaultExceptionHandlerTests {
     public void testHandleDataIntegrityViolationExceptionWithLocale_en() {
         ErrorDetail errorDetail = exceptionHandler.handleException(new DataIntegrityViolationException("Exception thrown when an attempt to insert or update data results in violation of an integrity constraint."), Locale.ENGLISH);
         Assert.assertEquals(errorDetail.getCode(), "SAFE0001BP0002");
-        Assert.assertEquals(errorDetail.getMessage(), "The system is too busy, please check the details and confirm the result");
+        Assert.assertEquals(errorDetail.getMessage(), "The system is busy, please check the details and confirm the result");
     }
 
     @Test
