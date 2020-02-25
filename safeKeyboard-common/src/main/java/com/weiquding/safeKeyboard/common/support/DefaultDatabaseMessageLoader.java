@@ -35,7 +35,7 @@ public class DefaultDatabaseMessageLoader implements DatabaseMessageLoader {
             }
             return map;
         } catch (Exception e) {
-            log.warn("Failed to load MessageSource: [{}] [{}]", tableName, locale);
+            log.warn("Failed to load MessageSource: [{}] [{}]", tableName, locale, e);
             return null;
         }
     }
@@ -45,7 +45,7 @@ public class DefaultDatabaseMessageLoader implements DatabaseMessageLoader {
         try {
             return messagesMapper.selectLastModifiedTime(tableName, locale);
         } catch (Exception e) {
-            log.warn("Failed to select LastModified: [{}] [{}]", tableName, locale);
+            log.warn("Failed to select LastModified: [{}] [{}]", tableName, locale, e);
             return null;
         }
     }

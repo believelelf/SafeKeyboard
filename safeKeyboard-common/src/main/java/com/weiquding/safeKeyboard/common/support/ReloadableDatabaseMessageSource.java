@@ -276,9 +276,7 @@ public class ReloadableDatabaseMessageSource extends AbstractResourceBasedMessag
         String language = locale.getLanguage();
         String country = locale.getCountry();
         String variant = locale.getVariant();
-        StringBuilder temp = new StringBuilder(basename);
-
-        temp.append('_');
+        StringBuilder temp = new StringBuilder();
         if (language.length() > 0) {
             temp.append(language);
             result.add(0, new Param(basename, temp.toString()));

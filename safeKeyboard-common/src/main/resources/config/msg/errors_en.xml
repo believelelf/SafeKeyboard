@@ -2,13 +2,11 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
     <!-- 异常类映射到错误码 -->
-    <entry key="org.springframework.dao.DataAccessException">BASEBP0001</entry>
     <entry key="org.springframework.dao.DataIntegrityViolationException">BASEBP0002</entry>
-    <entry key="org.apache.ibatis.exceptions.PersistenceException.PersistenceException">BASEBP0001</entry>
-    <entry key="java.util.concurrent.TimeoutException">BASEBP0002</entry>
 
     <!-- 错误码映射到错误信息 -->
     <entry key="BASEBP0001">Unknown system exception, please contact system administrator.</entry>
+    <entry key="BASEBP0002">The system is too busy, please check the details and confirm the result</entry>
     <entry key="BASEBP0025">The password you entered is not correct. There are only {0} chances left today.</entry>
     <entry key="BASEBP0026">The length of your password is not correct. The current password length is {0}.</entry>
 

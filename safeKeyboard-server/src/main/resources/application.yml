@@ -21,5 +21,5 @@ base:
       basename: values_messages
       cache-duration: PT10M
     errors-tables:
-      basename: error_messages
+      basename: errors_messages
       cache-duration: PT10M

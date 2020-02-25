@@ -2,6 +2,7 @@ package com.weiquding.safeKeyboard.common.config;
 
 import com.weiquding.safeKeyboard.common.core.DefaultMessagesProvider;
 import com.weiquding.safeKeyboard.common.core.MessagesProvider;
+import com.weiquding.safeKeyboard.common.core.SystemConfig;
 import com.weiquding.safeKeyboard.common.mapper.MessagesMapper;
 import com.weiquding.safeKeyboard.common.support.DefaultDatabaseMessageLoader;
 import com.weiquding.safeKeyboard.common.support.ReloadableDatabaseMessageSource;
@@ -65,6 +66,14 @@ public class MessageSourceConfiguration {
     public MessageSourceProperties errorsTablesProperties() {
         return new MessageSourceProperties();
     }
+
+
+    @Bean(name = {"systemConfig"})
+    @ConfigurationProperties(prefix = "base.config", ignoreUnknownFields = true)
+    public SystemConfig systemConfig() {
+        return new SystemConfig();
+    }
+
 
     private MessageSource messageSource(AbstractResourceBasedMessageSource messageSource, MessageSourceProperties properties) {
         if (StringUtils.hasText(properties.getBasename())) {

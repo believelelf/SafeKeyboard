@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Primary;
  * @author believeyourself
  */
 @Configuration
-public class KeystoreAutoConfig {
+public class KeystoreConfiguration {
 
     @Bean
     @Primary

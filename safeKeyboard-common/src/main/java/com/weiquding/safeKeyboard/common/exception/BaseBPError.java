@@ -43,6 +43,9 @@ public enum BaseBPError {
     DIGEST("BASEBP0029", "Password digest authentication failed"),
     SIGNATURE_CORRUPTED("BASEBP0030", "Signature corrupted"),
     KEYSTORE_INSTANCE("BASEBP0031", "An error occurred while obtaining an instance of keystore"),
+    GETTING_CIPHERINPUTSTREAM("BASEBP0032", "An error occurred while getting CipherInputStream"),
+    GETTING_CIPHEROUTPUTSTREAM("BASEBP0033", "An error occurred while getting CipherOutputStream"),
+
     ;
 
     private ErrorInfo errorInfo;

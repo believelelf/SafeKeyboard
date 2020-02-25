@@ -3,11 +3,12 @@ package com.weiquding.safeKeyboard.common.util;
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
+import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -44,6 +45,7 @@ import java.util.Base64;
 public class AESUtil {
 
     private static final String ALGORITHM = "AES";
+    private static final String SECURE_RANDOM_ALGORITHM = "SHA1PRNG";
 
 
     /**
@@ -123,7 +125,7 @@ public class AESUtil {
      * @param bitLen 位数
      * @return AES密钥
      */
-    public static Key generateAESKey(int bitLen) {
+    public static SecretKey generateAESKey(int bitLen) {
         try {
             KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
             SecureRandom random = new SecureRandom();
@@ -159,10 +161,31 @@ public class AESUtil {
      * @param encoded 密钥数据
      * @return Key对象
      */
-    public static Key restoreKey(byte[] encoded) {
+    public static SecretKey restoreKey(byte[] encoded) {
         try {
             return new SecretKeySpec(encoded, ALGORITHM);
         } catch (Exception e) {
+            throw BaseBPError.GENERATING_AES_KEY.getInfo().initialize(e);
+        }
+    }
+
+    /**
+     * 从密钥数据恢复Key对象
+     *
+     * @param bitLen 密钥位数
+     * @param seed   密钥数据
+     * @return Key对象
+     */
+    public static SecretKey restoreKey(int bitLen, byte[] seed) {
+        try {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
+            SecureRandom random = SecureRandom.getInstance(SECURE_RANDOM_ALGORITHM);
+            random.setSeed(seed);
+            keyGenerator.init(bitLen, random);
+            SecretKey secretKey = keyGenerator.generateKey();
+            byte[] encodeKey = secretKey.getEncoded();
+            return new SecretKeySpec(encodeKey, ALGORITHM);
+        } catch (NoSuchAlgorithmException e) {
             throw BaseBPError.GENERATING_AES_KEY.getInfo().initialize(e);
         }
     }
@@ -216,6 +239,41 @@ public class AESUtil {
      */
     public static Cipher getCipher(boolean encrypt, String cipherAlgorithm, byte[] encoded, AlgorithmParameterSpec param) {
         return getCipher(encrypt, cipherAlgorithm, restoreKey(encoded), param);
+    }
+
+    /**
+     * AES 设置数据流为加密模式
+     *
+     * @param secretKey    密钥
+     * @param outputStream 输出流
+     * @return CipherOutputStream
+     */
+    public static CipherOutputStream getCipherOutputStream(SecretKey secretKey, OutputStream outputStream) {
+        try {
+            // 加密
+            Cipher c1 = Cipher.getInstance(ALGORITHM);
+            c1.init(Cipher.ENCRYPT_MODE, secretKey);
+            return new CipherOutputStream(outputStream, c1);
+        } catch (Exception e) {
+            throw BaseBPError.GETTING_CIPHEROUTPUTSTREAM.getInfo().initialize(e);
+        }
+    }
+
+    /**
+     * AES 设置数据流为解密模式
+     *
+     * @param secretKey   密钥
+     * @param inputStream 输入流
+     * @return CipherInputStream
+     */
+    public static CipherInputStream getCipherInputStream(SecretKey secretKey, InputStream inputStream) {
+        try {
+            Cipher c1 = Cipher.getInstance(ALGORITHM);
+            c1.init(Cipher.DECRYPT_MODE, secretKey);
+            return new CipherInputStream(inputStream, c1);
+        } catch (Exception e) {
+            throw BaseBPError.GETTING_CIPHERINPUTSTREAM.getInfo().initialize(e);
+        }
     }
 
     /**

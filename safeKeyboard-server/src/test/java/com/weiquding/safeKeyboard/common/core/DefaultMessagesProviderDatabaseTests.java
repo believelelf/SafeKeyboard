@@ -13,15 +13,15 @@ import java.util.Locale;
 import java.util.concurrent.TimeoutException;
 
 /**
- * DefaultMessagesProvider 测试类
+ * DefaultMessagesProvider 测试类,基于数据库
  *
  * @author beliveyourself
  * @version V1.0
  * @date 2020/2/22
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = {"base.messages.type=bundle"})
-public class DefaultMessagesProviderBundleTests {
+@SpringBootTest(properties = {"base.messages.type=database"})
+public class DefaultMessagesProviderDatabaseTests {
 
     @Autowired
     private MessagesProvider messagesProvider;
@@ -53,7 +53,6 @@ public class DefaultMessagesProviderBundleTests {
         Object message = messagesProvider.resolveError(th, Locale.CHINA);
         Assert.assertEquals("未知系统异常，请联系系统管理员。", message);
     }
-
     @Test
     public void testResolveErrorWithErrorCodeAndLocale_zh_CN_AtServer() {
         Object message = messagesProvider.resolveError(BaseBPError.TIMEOUT.getInfo().getCode(), null, BaseBPError.TIMEOUT.getInfo().getDefaultMsg(), Locale.CHINA);
@@ -89,6 +88,7 @@ public class DefaultMessagesProviderBundleTests {
         Object message = messagesProvider.resolveError(BaseBPError.PASSWORD_INCORRECT.getInfo().getCode(), new Object[]{1}, BaseBPError.PASSWORD_INCORRECT.getInfo().getDefaultMsg(), Locale.CHINA);
         Assert.assertEquals("您输入的密码不正确，今日还剩1次机会。", message);
     }
+
 
     @Test
     public void testGetMessageWithLocale_zh_CN() {
