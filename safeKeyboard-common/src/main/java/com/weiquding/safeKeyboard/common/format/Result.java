@@ -24,9 +24,21 @@ public final class Result<T> {
         return result;
     }
 
-    public static <T> Result fail(String code, String errorMsg, String cause) {
+    public static Result warning(String code, String errorMsg, String cause) {
+        return fail(code, errorMsg, cause, ErrorDetail.Severity.WARNING);
+    }
+
+    public static Result exception(String code, String errorMsg, String cause) {
+        return fail(code, errorMsg, cause, ErrorDetail.Severity.EXCEPTION);
+    }
+
+    public static Result error(String code, String errorMsg, String cause) {
+        return fail(code, errorMsg, cause, ErrorDetail.Severity.ERROR);
+    }
+
+    private static <T> Result fail(String code, String errorMsg, String cause, ErrorDetail.Severity severity) {
         Result<T> result = new Result<>();
-        result.setHead(new ErrorDetail(code, errorMsg, cause, ErrorDetail.Severity.EXCEPTION));
+        result.setHead(new ErrorDetail(code, errorMsg, cause, severity));
         result.setSuccess(false);
         return result;
     }

@@ -9,9 +9,12 @@ package com.weiquding.safeKeyboard.common.util;
  */
 public class Constants {
 
-    private Constants(){
+    private Constants() {
 
     }
 
     public static final String REQUEST_URI = "request_uri";
+
+    public static final String TRACE_NO = "x-traceNo";
+
 }

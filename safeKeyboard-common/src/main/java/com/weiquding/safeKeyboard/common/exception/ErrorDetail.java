@@ -53,6 +53,11 @@ public class ErrorDetail {
     private String helpLink;
 
     /**
+     * 请求URI
+     */
+    private String path;
+
+    /**
      * Item the message refers to, if applicable. This is used to indicate a missing or incorrect value.
      * 信息所涉及的项目，如果适用的话。这用于指示缺少或不正确的值。
      */

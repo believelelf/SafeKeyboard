@@ -45,7 +45,7 @@ public class ResultFailException extends BaseRuntimeException implements Seriali
     /**
      * 接口异常
      *
-     * @param errorInfo 错误信息
+     * @param errorInfo 错误码
      * @param result    接口返回数据
      * @param args      错误参数
      */
@@ -56,10 +56,11 @@ public class ResultFailException extends BaseRuntimeException implements Seriali
     /**
      * 接口异常
      *
-     * @param errorInfo 错误信息
+     * @param errorInfo 错误码
      * @param result    接口返回数据
      */
     public ResultFailException(ErrorInfo errorInfo, Object result) {
-        this(errorInfo.getCode(), errorInfo.getDefaultMsg(), result, null);
+        this(errorInfo.getCode(), errorInfo.getDefaultMsg(), result);
     }
+
 }

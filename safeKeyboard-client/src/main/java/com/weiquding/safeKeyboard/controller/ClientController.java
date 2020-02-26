@@ -6,6 +6,7 @@ import com.weiquding.safeKeyboard.common.cache.GuavaCache;
 import com.weiquding.safeKeyboard.common.cache.KeyCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
+import com.weiquding.safeKeyboard.common.format.Result;
 import com.weiquding.safeKeyboard.common.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,7 @@ public class ClientController {
      *
      */
     @RequestMapping("/generateRNC")
-    public Map<String, String> generateRNC(String sessionId) {
+    public Result generateRNC(String sessionId) {
         Map<String, String> rncAndPMS = RandomUtil.generateRNCAndPMS();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -69,7 +70,7 @@ public class ClientController {
         rncAndPMS.remove("cipherText");
         GuavaCache.CLIENT_CACHE.put(sessionId, rncAndPMS);
         // 测试用
-        return rncAndPMS;
+        return Result.success(rncAndPMS);
     }
 
     /**
