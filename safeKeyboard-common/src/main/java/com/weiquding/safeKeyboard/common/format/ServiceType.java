@@ -1,6 +1,5 @@
 package com.weiquding.safeKeyboard.common.format;
 
-import com.weiquding.safeKeyboard.common.exception.SKBS0001ResultFailException;
 
 /**
  * 系统渠道
@@ -14,28 +13,28 @@ public enum ServiceType {
     /**
      * 安全服务系统
      */
-    SKBS0001("SKBS0001ExchangeHandler", SKBS0001ResultFailException.class);
+    SKBS0001("SKBS0001", false);
 
     /**
-     * 处理器
+     * 系统代码
      */
-    private String exchangeHandler;
+    private String systemCode;
     /**
-     * 对应异常类
+     * 是否在错误码前追加系统代码
      */
-    private Class resultFailException;
+    private boolean prepend;
 
-    ServiceType(String exchangeHandler, Class resultFailException) {
-        this.exchangeHandler = exchangeHandler;
-        this.resultFailException = resultFailException;
+    ServiceType(String systemCode, boolean prepend) {
+        this.systemCode = systemCode;
+        this.prepend = prepend;
     }
 
-    public String getExchangeHandler() {
-        return exchangeHandler;
+    public String getSystemCode() {
+        return systemCode;
     }
 
-    public Class getResultFailException() {
-        return resultFailException;
+    public boolean isPrepend() {
+        return prepend;
     }
 
 }
