@@ -67,6 +67,20 @@ public class AESUtilTests {
         Assert.assertTrue(Arrays.equals(data, decryptByAESKey));
     }
 
+    @Test
+    public void testAES_256_CBC_PKCS7Padding() {
+        byte[] encryptByAESKey = AESUtil.AES_256_CBC_PKCS7Padding.encryptByAESKey(encoded, cbcIV, data);
+        byte[] decryptByAESKey = AESUtil.AES_256_CBC_PKCS7Padding.decryptByAESKey(encoded, cbcIV, encryptByAESKey);
+        Assert.assertTrue(Arrays.equals(data, decryptByAESKey));
+    }
+
+    @Test
+    public void testAES_256_CBC_PKCS7PaddingDefaultIV() {
+        byte[] encryptByAESKey = AESUtil.AES_256_CBC_PKCS7Padding.encryptByAESKey(encoded, data);
+        byte[] decryptByAESKey = AESUtil.AES_256_CBC_PKCS7Padding.decryptByAESKey(encoded, encryptByAESKey);
+        Assert.assertTrue(Arrays.equals(data, decryptByAESKey));
+    }
+
 
     /**
      * Input length must be multiple of 16
@@ -82,6 +96,13 @@ public class AESUtilTests {
     public void testAES_256_ECB_PKCS5Padding() {
         byte[] encryptByAESKey = AESUtil.AES_256_ECB_PKCS5Padding.encryptByAESKey(encoded, data);
         byte[] decryptByAESKey = AESUtil.AES_256_ECB_PKCS5Padding.decryptByAESKey(encoded, encryptByAESKey);
+        Assert.assertTrue(Arrays.equals(data, decryptByAESKey));
+    }
+
+    @Test
+    public void testAES_256_ECB_PKCS7Padding() {
+        byte[] encryptByAESKey = AESUtil.AES_256_ECB_PKCS7Padding.encryptByAESKey(encoded, data);
+        byte[] decryptByAESKey = AESUtil.AES_256_ECB_PKCS7Padding.decryptByAESKey(encoded, encryptByAESKey);
         Assert.assertTrue(Arrays.equals(data, decryptByAESKey));
     }
 }

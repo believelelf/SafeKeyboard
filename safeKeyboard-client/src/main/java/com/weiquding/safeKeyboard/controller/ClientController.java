@@ -82,34 +82,39 @@ public class ClientController {
     @RequestMapping("/getEncryptedPassword")
     public Map<String, String> getEncryptedPassword(@RequestParam("password") String password, String sessionId) {
         Map<String, String> map = new HashMap<>(1);
-        byte[] ivParameter = AESUtil.AES_256_GCM_NoPadding.ivParameter();
         Map<String, String> session = GuavaCache.CLIENT_CACHE.getIfPresent(sessionId);
         String PMS = session.get("PMS");
         String RNC = session.get("RNC");
         String RNS = session.get("RNS");
         byte[][] keyBlock = PRFUtil.generateKeyBlock(PMS, RNC, RNS);
         byte[] pwdBytes = password.getBytes(StandardCharsets.UTF_8);
-        byte[] randomBytes = RandomUtil.generateRandomBytes(32);
-        // 拼接randomBytes
-        byte[] confusionPwd = new byte[randomBytes.length + pwdBytes.length];
-        System.arraycopy(randomBytes, 0, confusionPwd, 0, randomBytes.length);
-        System.arraycopy(pwdBytes, 0, confusionPwd, randomBytes.length, pwdBytes.length);
-        // 摘要
-        Mac macInstance = HmacUtil.getMacInstance(HmacUtil.HMAC_SHA_256, keyBlock[0]);
-        byte[] macDigest = macInstance.doFinal(confusionPwd);
-        // 对称加密
-        byte[] encryptedPwd = AESUtil.AES_256_GCM_NoPadding.encryptByAESKey(keyBlock[2], ivParameter, confusionPwd);
-        log.debug("clientMacKey:{}", Arrays.toString(keyBlock[0]));
-        log.debug("clientWriteKey:{}", Arrays.toString(keyBlock[2]));
-        log.debug("ivParameter:{}", Arrays.toString(ivParameter));
-        log.debug("encryptedPwd:{}", Arrays.toString(encryptedPwd));
-        log.debug("macDigest:{}", Arrays.toString(macDigest));
+        // 修改点1： 不拼接randomBytes, 不做混淆了。以使前端相同key加密的两次密文一致，可用于前端密码输入一致的判断。
 
-        // 拼接
-        byte[] cipherText = new byte[ivParameter.length + encryptedPwd.length + macDigest.length];
-        System.arraycopy(ivParameter, 0, cipherText, 0, ivParameter.length);
-        System.arraycopy(encryptedPwd, 0, cipherText, ivParameter.length, encryptedPwd.length);
-        System.arraycopy(macDigest, 0, cipherText, ivParameter.length + encryptedPwd.length, macDigest.length);
+        // 进行摘要
+        Mac macInstance = HmacUtil.getMacInstance(HmacUtil.HMAC_SHA_256, keyBlock[0]);
+        byte[] macDigest = macInstance.doFinal(pwdBytes);
+
+        // 修改点2： 向量IV取keyBlock取第keyBlock[4],不再随机生成。
+        byte[] ivParameter = keyBlock[4];
+
+        // 对称加密
+        byte[] encryptedPwd = AESUtil.AES_256_CBC_PKCS7Padding.decryptByAESKey(keyBlock[2], ivParameter, pwdBytes);
+
+        log.info("clientMacKey:{}", Arrays.toString(keyBlock[0]));
+        log.info("clientWriteKey:{}", Arrays.toString(keyBlock[2]));
+        log.info("ivParameter.length:{}", ivParameter.length);
+        log.info("ivParameter:{}", Arrays.toString(ivParameter));
+        log.info("pwdBytes.length:{}", pwdBytes.length);
+        log.info("pwdBytes:{}", Arrays.toString(pwdBytes));
+        log.info("macDigest.length:{}", macDigest.length);
+        log.info("macDigest:{}", Arrays.toString(macDigest));
+        log.info("encryptedPwd.length:{}", encryptedPwd.length);
+        log.info("encryptedPwd:{}", Arrays.toString(encryptedPwd));
+
+        //修改点3： IV不再拼接到密码字节中
+        byte[] cipherText = new byte[encryptedPwd.length + macDigest.length];
+        System.arraycopy(encryptedPwd, 0, cipherText, 0, encryptedPwd.length);
+        System.arraycopy(macDigest, 0, cipherText, encryptedPwd.length, macDigest.length);
 
         String encryptedPwdString = Base64.getEncoder().encodeToString(cipherText);
         map.put("password", URLEncoder.encode(encryptedPwdString, StandardCharsets.UTF_8));

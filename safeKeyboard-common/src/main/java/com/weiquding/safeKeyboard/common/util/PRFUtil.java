@@ -1,6 +1,7 @@
 package com.weiquding.safeKeyboard.common.util;
 
 import javax.crypto.Mac;
+import java.util.Arrays;
 
 /**
  * The pseudo random function
@@ -89,6 +90,8 @@ public class PRFUtil {
      * keyBlock[1]:服务端Mac摘要密钥：serverMacKey[32]
      * keyBlock[2]:客户端AES对称加密密钥：clientWriteKey[32]
      * keyBlock[3]:服务端AES对称加密密钥：serverWriteKey[32]
+     * keyBlock[4]:客户端AES对称加密向量：clientWriteIV[16]
+     * keyBlock[5]:服务端AES对称加密向量：serverWriteIV[16]
      *
      * @param MS  master secret
      * @param RNC random number of client
@@ -105,12 +108,14 @@ public class PRFUtil {
         byte[] seed = new byte[RNC.length + RNS.length];
         System.arraycopy(RNC, 0, seed, 0, RNC.length);
         System.arraycopy(RNS, 0, seed, RNC.length, RNS.length);
-        byte[] randoms = prf(MS, KEY_BLOCK_LABEL, seed, 4);
-        byte[][] keyBlock = new byte[4][32];
-        System.arraycopy(randoms, 0, keyBlock[0], 0, 32);
-        System.arraycopy(randoms, 32, keyBlock[1], 0, 32);
-        System.arraycopy(randoms, 64, keyBlock[2], 0, 32);
-        System.arraycopy(randoms, 96, keyBlock[3], 0, 32);
+        byte[] randoms = prf(MS, KEY_BLOCK_LABEL, seed, 5);
+        byte[][] keyBlock = new byte[6][];
+        keyBlock[0] = Arrays.copyOfRange(randoms, 0, 32);
+        keyBlock[1] = Arrays.copyOfRange(randoms, 32, 64);
+        keyBlock[2] = Arrays.copyOfRange(randoms, 64, 96);
+        keyBlock[3] = Arrays.copyOfRange(randoms, 96, 128);
+        keyBlock[4] = Arrays.copyOfRange(randoms, 128, 144);
+        keyBlock[5] = Arrays.copyOfRange(randoms, 144, 160);
         return keyBlock;
     }
 

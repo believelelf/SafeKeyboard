@@ -2,6 +2,7 @@ package com.weiquding.safeKeyboard.common.util;
 
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import javax.crypto.*;
 import javax.crypto.spec.GCMParameterSpec;
@@ -12,6 +13,7 @@ import java.io.OutputStream;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.Security;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Base64;
 
@@ -47,6 +49,11 @@ public class AESUtil {
     private static final String ALGORITHM = "AES";
     private static final String SECURE_RANDOM_ALGORITHM = "SHA1PRNG";
 
+
+    static {
+        // 增加BouncyCastleProvider
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     /**
      * 编码Key数据
@@ -581,6 +588,113 @@ public class AESUtil {
     }
 
     /**
+     * AES/CBC/PKCS7Padding 加解密类
+     */
+    public static final class AES_256_CBC_PKCS7Padding {
+
+        private static final String CIPHER_ALGORITHM = "AES/CBC/PKCS7Padding";
+
+        private static final int AES_KEY_SIZE = 256;
+        /**
+         * CBC mode requires an IV of the same size as the block size 16 (128 bit)
+         */
+        private static final int CBC_IV_LENGTH = 16;
+
+        /**
+         * 默认向量：{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+         * <p>
+         * What causes the error “java.security.InvalidKeyException: Parameters missing”?
+         * (https://stackoverflow.com/questions/17322002/what-causes-the-error-java-security-invalidkeyexception-parameters-missing?rq=1)
+         * <p>
+         * If you use a block-chaining mode like CBC, you need to provide an IvParameterSpec to the Cipher as well.
+         */
+        private static final IvParameterSpec DEFAULT_IV_PARAMETER_SPEC = new IvParameterSpec(new byte[CBC_IV_LENGTH]);
+
+        /**
+         * 生成256位密钥
+         *
+         * @return 256位密钥
+         */
+        public static byte[] initAESKey() {
+            return AESUtil.initAESKey(AES_KEY_SIZE);
+        }
+
+        /**
+         * 获取12字节向量
+         *
+         * @return 长度为12字节的向量
+         */
+        public static byte[] ivParameter() {
+            return RandomUtil.generateRandomBytes(CBC_IV_LENGTH);
+        }
+
+        /**
+         * 使用 AES/CBC/PKCS7Padding 进行解密
+         *
+         * @param encoded 密钥数据
+         * @param iv      向量
+         * @param data    数据
+         * @return 解密后数据
+         */
+        public static byte[] decryptByAESKey(byte[] encoded, byte[] iv, byte[] data) {
+            try {
+                return getCipher(false, CIPHER_ALGORITHM, encoded, AESUtil.ivParameter(iv)).doFinal(data);
+            } catch (Exception e) {
+                throw BaseBPError.AES_DECRYPTION.getInfo().initialize(e);
+            }
+        }
+
+        /**
+         * 使用 AES/CBC/PKCS7Padding 进行解密
+         * 向量部分使用了{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }，最好使用带随机向量入参的方法。
+         *
+         * @param encoded 密钥数据
+         * @param data    数据
+         * @return 解密后数据
+         */
+        public static byte[] decryptByAESKey(byte[] encoded, byte[] data) {
+            try {
+                return getCipher(false, CIPHER_ALGORITHM, encoded, DEFAULT_IV_PARAMETER_SPEC).doFinal(data);
+            } catch (Exception e) {
+                throw BaseBPError.AES_DECRYPTION.getInfo().initialize(e);
+            }
+        }
+
+        /**
+         * 使用 AES/CBC/PKCS7Padding 进行加密
+         *
+         * @param encoded 密钥
+         * @param iv      向量
+         * @param data    加密数据
+         * @return 解密后数据
+         */
+        public static byte[] encryptByAESKey(byte[] encoded, byte[] iv, byte[] data) {
+            try {
+                return getCipher(true, CIPHER_ALGORITHM, encoded, AESUtil.ivParameter(iv)).doFinal(data);
+            } catch (Exception e) {
+                throw BaseBPError.AES_ENCRYPTION.getInfo().initialize(e);
+            }
+        }
+
+        /**
+         * 使用 AES/CBC/PKCS7Padding 进行加密
+         * 向量部分使用了{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }，最好使用带随机向量入参的方法。
+         *
+         * @param encoded 密钥
+         * @param data    加密数据
+         * @return 解密后数据
+         */
+        public static byte[] encryptByAESKey(byte[] encoded, byte[] data) {
+            try {
+                return getCipher(true, CIPHER_ALGORITHM, encoded, DEFAULT_IV_PARAMETER_SPEC).doFinal(data);
+            } catch (Exception e) {
+                throw BaseBPError.AES_ENCRYPTION.getInfo().initialize(e);
+            }
+        }
+
+    }
+
+    /**
      * AES/ECB/NoPadding 加解密类
      * AES/ECB/NoPadding and  AES/CBC/NoPadding 等无填充模式，输入数据字节长度必须等于blockSize的倍数,即为16字节（128位）的倍数。
      * [输入数据存在限制条件，请在特定条件下使用]
@@ -688,5 +802,57 @@ public class AESUtil {
         }
     }
 
+
+    /**
+     * AES/ECB/PKCS7Padding 加解密类
+     * ECB mode cannot use IV
+     */
+    public static final class AES_256_ECB_PKCS7Padding {
+
+        private static final String CIPHER_ALGORITHM = "AES/ECB/PKCS7Padding";
+
+        private static final int AES_KEY_SIZE = 256;
+
+
+        /**
+         * 生成256位密钥
+         *
+         * @return 256位密钥
+         */
+        public static byte[] initAESKey() {
+            return AESUtil.initAESKey(AES_KEY_SIZE);
+        }
+
+        /**
+         * 使用 AES/ECB/PKCS7Padding 进行解密
+         *
+         * @param encoded 密钥数据
+         * @param data    数据
+         * @return 解密后数据
+         */
+        public static byte[] decryptByAESKey(byte[] encoded, byte[] data) {
+            try {
+                return getCipher(false, CIPHER_ALGORITHM, encoded, null).doFinal(data);
+            } catch (Exception e) {
+                throw BaseBPError.AES_DECRYPTION.getInfo().initialize(e);
+            }
+        }
+
+
+        /**
+         * 使用 AES/ECB/PKCS7Padding 进行加密
+         *
+         * @param encoded 密钥
+         * @param data    加密数据
+         * @return 解密后数据
+         */
+        public static byte[] encryptByAESKey(byte[] encoded, byte[] data) {
+            try {
+                return getCipher(true, CIPHER_ALGORITHM, encoded, null).doFinal(data);
+            } catch (Exception e) {
+                throw BaseBPError.AES_ENCRYPTION.getInfo().initialize(e);
+            }
+        }
+    }
 
 }

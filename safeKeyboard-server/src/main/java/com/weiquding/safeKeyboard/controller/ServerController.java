@@ -64,29 +64,25 @@ public class ServerController {
         byte[][] keyBlock = PRFUtil.generateKeyBlock(PMS, RNC, RNS);
         // 切分iv[12] + cipherText[?] + macSign[32]
         byte[] base64DecodeBytes = Base64.getDecoder().decode(password);
-        byte[] iv = new byte[12];
+        byte[] iv = keyBlock[4];
         byte[] macDigest = new byte[32];
-        byte[] cipherText = new byte[base64DecodeBytes.length - iv.length - macDigest.length];
-        System.arraycopy(base64DecodeBytes, 0, iv, 0, iv.length);
-        System.arraycopy(base64DecodeBytes, iv.length, cipherText, 0, cipherText.length);
-        System.arraycopy(base64DecodeBytes, iv.length + cipherText.length, macDigest, 0, macDigest.length);
+        byte[] cipherText = new byte[base64DecodeBytes.length - macDigest.length];
+        System.arraycopy(base64DecodeBytes, 0, cipherText, 0, cipherText.length);
+        System.arraycopy(base64DecodeBytes, cipherText.length, macDigest, 0, macDigest.length);
         log.debug("clientMacKey:{}", Arrays.toString(keyBlock[0]));
         log.debug("clientWriteKey:{}", Arrays.toString(keyBlock[2]));
         log.debug("ivParameter:{}", Arrays.toString(iv));
         log.debug("encryptedPwd:{}", Arrays.toString(cipherText));
         log.debug("macDigest:{}", Arrays.toString(macDigest));
         // 对称解密
-        byte[] encryptedPwd = AESUtil.AES_256_GCM_NoPadding.decryptByAESKey(keyBlock[2], iv, cipherText);
+        byte[] encryptedPwd = AESUtil.AES_256_CBC_PKCS7Padding.decryptByAESKey(keyBlock[2], iv, cipherText);
         // 验证摘要
         byte[] serverMacDigest = HmacUtil.getMacInstance(HmacUtil.HMAC_SHA_256, keyBlock[0]).doFinal(encryptedPwd);
         if (!Arrays.equals(macDigest, serverMacDigest)) {
             throw BaseBPError.DIGEST.getInfo().initialize();
         }
-        // 取出真实的密码
-        byte[] pwdBytes = new byte[encryptedPwd.length - 32];
-        System.arraycopy(encryptedPwd, 32, pwdBytes, 0, pwdBytes.length);
         // 真实的密码
-        String pwd = new String(pwdBytes, StandardCharsets.UTF_8);
+        String pwd = new String(encryptedPwd, StandardCharsets.UTF_8);
         // 测试分支: 设置密码时
         //checkUserService.checkPasswordRule(pwd);
         // 对真实的密码进行哈希
