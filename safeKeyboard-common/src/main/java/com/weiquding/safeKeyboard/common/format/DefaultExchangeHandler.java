@@ -12,10 +12,10 @@ import org.springframework.http.ResponseEntity;
  * @date 2020/2/26
  */
 @Slf4j
-public class DefaultExchangeHandler<R> implements ExchangeHandler<R> {
+public class DefaultExchangeHandler implements ExchangeHandler {
 
     @Override
-    public void handleRequestEntity(RequestEntity<R> requestEntity) {
+    public <R> void handleRequestEntity(RequestEntity<R> requestEntity) {
         log.info("请求参数:{}", requestEntity);
     }
 

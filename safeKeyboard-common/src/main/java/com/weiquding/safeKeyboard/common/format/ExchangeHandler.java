@@ -10,14 +10,14 @@ import org.springframework.http.ResponseEntity;
  * @version V1.0
  * @date 2020/2/26
  */
-public interface ExchangeHandler<R> {
+public interface ExchangeHandler {
 
     /**
      * 针对特定渠道，处理请求参数
      *
      * @param requestEntity 请求参数
      */
-    void handleRequestEntity(RequestEntity<R> requestEntity);
+    <R> void handleRequestEntity(RequestEntity<R> requestEntity);
 
     /**
      * 针对特定渠道，处理返回数据

@@ -3,6 +3,7 @@ package com.weiquding.safeKeyboard.common.config;
 import com.weiquding.safeKeyboard.common.format.DefaultExchangeHandler;
 import com.weiquding.safeKeyboard.common.format.ExchangeHandler;
 import com.weiquding.safeKeyboard.common.format.HttpTransport;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,10 +19,13 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class FormatConfiguration {
 
-    @Bean
-    @ConditionalOnMissingBean
+    @Value("${base.http.rootUri.skbs}")
+    private String skbsRootUri;
+
+    @Bean("skbsHttpTransport")
+    @ConditionalOnMissingBean(name = "skbsHttpTransport")
     public HttpTransport httpTransport(RestTemplate restTemplate, ExchangeHandler exchangeHandler) {
-        return new HttpTransport(restTemplate, exchangeHandler);
+        return new HttpTransport(skbsRootUri, restTemplate, exchangeHandler);
     }
 
     @Bean

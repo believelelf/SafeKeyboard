@@ -30,3 +30,6 @@ base:
     systemName: SAFE-APP
   exception:
     outputHostName: true
+  http:
+    rootUri:
+     skbs:  http://localhost:8082

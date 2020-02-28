@@ -5,16 +5,16 @@ import com.weiquding.safeKeyboard.common.annotation.DecryptAndVerifySign;
 import com.weiquding.safeKeyboard.common.annotation.EncryptAndSignature;
 import com.weiquding.safeKeyboard.common.cache.GuavaCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
+import com.weiquding.safeKeyboard.common.dto.GenerateRnsReq;
+import com.weiquding.safeKeyboard.common.dto.GenerateRnsRsp;
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
+import com.weiquding.safeKeyboard.common.format.Result;
 import com.weiquding.safeKeyboard.common.util.*;
 import com.weiquding.safeKeyboard.mock.UserMock;
 import com.weiquding.safeKeyboard.service.CheckUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -38,8 +38,8 @@ public class ServerController {
     private UserMock userMock;
 
     @RequestMapping(value = "/generateRNS", method = RequestMethod.POST)
-    public Map<String, String> generateRNC(@RequestParam("RNC") String cipherText, String sessionId) {
-        byte[] RNCAndPMS = RSAUtil.decryptByRSAPrivateKey(KeyInstance.RSA_PRIVATE_KEY, Base64.getDecoder().decode(cipherText));
+    public Result<GenerateRnsRsp> generateRNC(@RequestBody GenerateRnsReq generateRnsReq) {
+        byte[] RNCAndPMS = RSAUtil.decryptByRSAPrivateKey(KeyInstance.RSA_PRIVATE_KEY, Base64.getDecoder().decode(generateRnsReq.getRnc()));
         byte[] RNC = new byte[32];
         byte[] PMS = new byte[48];
         System.arraycopy(RNCAndPMS, 0, RNC, 0, RNC.length);
@@ -49,8 +49,8 @@ public class ServerController {
         session.put("RNC", Base64.getEncoder().encodeToString(RNC));
         session.put("PMS", Base64.getEncoder().encodeToString(PMS));
         session.put("RNS", map.get("RNS"));
-        GuavaCache.SERVER_CACHE.put(sessionId, session);
-        return map;
+        GuavaCache.SERVER_CACHE.put(generateRnsReq.getSessionId(), session);
+        return Result.success(new GenerateRnsRsp(map.get("RNS"), map.get("sign")));
     }
 
     @RequestMapping(value = "/submitEncryptedPassword", method = RequestMethod.POST)

@@ -2,6 +2,7 @@ package com.weiquding.safeKeyboard.common.exception;
 
 import com.weiquding.safeKeyboard.common.format.Result;
 import com.weiquding.safeKeyboard.common.util.Constants;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -28,8 +29,10 @@ import javax.servlet.http.HttpServletRequest;
  * @version V1.0
  * @date 2020/2/26
  */
+@Slf4j
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+
 
     @Autowired
     private com.weiquding.safeKeyboard.common.exception.ExceptionHandler exceptionHandler;
@@ -42,12 +45,29 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             ServletWebRequest servletWebRequest = (ServletWebRequest) request;
             HttpServletRequest httpServletRequest = servletWebRequest.getRequest();
             String traceNo = httpServletRequest.getHeader(Constants.TRACE_NO);
-            if(StringUtils.hasText(traceNo)){
+            if (StringUtils.hasText(traceNo)) {
                 errorDetail.setId(traceNo);
             }
             errorDetail.setPath(httpServletRequest.getRequestURI());
         }
+        logError(errorDetail, ex);
         return handleExceptionInternal(ex, Result.fail(errorDetail), new HttpHeaders(), HttpStatus.OK, request);
+    }
+
+    /**
+     * 打印异常信息
+     *
+     * @param errorDetail 错误信息
+     * @param ex          异常信息
+     */
+    protected void logError(ErrorDetail errorDetail, Exception ex) {
+        if (ex instanceof BaseRuntimeException) {
+            BaseRuntimeException baseRuntimeException = (BaseRuntimeException) ex;
+            if (baseRuntimeException.isAlreadyLogged()) {
+                return;
+            }
+        }
+        log.error("An exception occurred on the request: [{}]", errorDetail, ex);
     }
 
 }

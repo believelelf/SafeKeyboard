@@ -5,11 +5,16 @@ import com.weiquding.safeKeyboard.common.annotation.EncryptSafeFields;
 import com.weiquding.safeKeyboard.common.cache.GuavaCache;
 import com.weiquding.safeKeyboard.common.cache.KeyCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
+import com.weiquding.safeKeyboard.common.dto.GenerateRnsReq;
+import com.weiquding.safeKeyboard.common.dto.GenerateRnsRsp;
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
+import com.weiquding.safeKeyboard.common.format.HttpTransport;
 import com.weiquding.safeKeyboard.common.format.Result;
+import com.weiquding.safeKeyboard.common.format.ServiceType;
 import com.weiquding.safeKeyboard.common.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -41,6 +46,10 @@ import java.util.Map;
 public class ClientController {
 
     @Autowired
+    @Qualifier("skbsHttpTransport")
+    private HttpTransport httpTransport;
+
+    @Autowired
     private RestTemplate restTemplate;
 
     @Resource
@@ -50,23 +59,16 @@ public class ClientController {
      *
      */
     @RequestMapping("/generateRNC")
-    public Result generateRNC(String sessionId) {
+    public Result<Map<String, String>> generateRNC(String sessionId) {
         Map<String, String> rncAndPMS = RandomUtil.generateRNCAndPMS();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        map.add("RNC", rncAndPMS.get("cipherText"));
-        map.add("sessionId", sessionId);
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
-
-        Map<String, String> retVal = restTemplate.postForObject("http://localhost:8082/generateRNS", request, Map.class);
-        String RNS = retVal.get("RNS");
-        String sign = retVal.get("sign");
-        boolean verify = RSAUtil.verifySignByRSAPublicKey(KeyInstance.RSA_PUBLIC_KEY, RNS.getBytes(), Base64.getDecoder().decode(sign));
+        Result<GenerateRnsRsp> result = httpTransport.postForObject(ServiceType.SKBS0001, "/generateRNS", new GenerateRnsReq(rncAndPMS.get("cipherText"), sessionId), GenerateRnsRsp.class);
+        String rns = result.getData().getRns();
+        String sign = result.getData().getSign();
+        boolean verify = RSAUtil.verifySignByRSAPublicKey(KeyInstance.RSA_PUBLIC_KEY, rns.getBytes(), Base64.getDecoder().decode(sign));
         if (!verify) {
             throw BaseBPError.SIGNATURE_CORRUPTED.getInfo().initialize();
         }
-        rncAndPMS.put("RNS", RNS);
+        rncAndPMS.put("RNS", rns);
         rncAndPMS.remove("cipherText");
         GuavaCache.CLIENT_CACHE.put(sessionId, rncAndPMS);
         // 测试用
@@ -98,7 +100,7 @@ public class ClientController {
         byte[] ivParameter = keyBlock[4];
 
         // 对称加密
-        byte[] encryptedPwd = AESUtil.AES_256_CBC_PKCS7Padding.decryptByAESKey(keyBlock[2], ivParameter, pwdBytes);
+        byte[] encryptedPwd = AESUtil.AES_256_CBC_PKCS7Padding.encryptByAESKey(keyBlock[2], ivParameter, pwdBytes);
 
         log.info("clientMacKey:{}", Arrays.toString(keyBlock[0]));
         log.info("clientWriteKey:{}", Arrays.toString(keyBlock[2]));
