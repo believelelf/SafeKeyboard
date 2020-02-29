@@ -23,8 +23,14 @@ public class ReflectUtil {
      * @param field 字段名称
      * @param value 字段值
      */
+    @SuppressWarnings("all")
     public static void setSafeFieldValue(Object data, String field, Object... value) {
         try {
+            if (data instanceof Map) {
+                Map<String, Object> map = (Map<String, Object>) data;
+                map.put(field, value[0]);
+                return;
+            }
             PropertyDescriptor propertyDescriptor = BeanUtils.getPropertyDescriptor(data.getClass(), field);
             if (propertyDescriptor != null) {
                 Method writeMethod = propertyDescriptor.getWriteMethod();
