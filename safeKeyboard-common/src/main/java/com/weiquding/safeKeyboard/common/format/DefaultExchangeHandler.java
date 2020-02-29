@@ -1,11 +1,14 @@
 package com.weiquding.safeKeyboard.common.format;
 
+import com.weiquding.safeKeyboard.common.util.Constants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 
+import java.util.UUID;
+
 /**
- * 默认处理器,仅打印RequestEntity及ResponseEntity
+ * 默认处理器,仅添加x-traceNo并打印ResponseEntity
  *
  * @author beliveyourself
  * @version V1.0
@@ -15,8 +18,8 @@ import org.springframework.http.ResponseEntity;
 public class DefaultExchangeHandler implements ExchangeHandler {
 
     @Override
-    public <R> void handleRequestEntity(RequestEntity<R> requestEntity) {
-        log.info("请求参数:{}", requestEntity);
+    public void handleRequestEntity(RequestEntity.BodyBuilder bodyBuilder) {
+        bodyBuilder.header(Constants.TRACE_NO, UUID.randomUUID().toString());
     }
 
     @Override

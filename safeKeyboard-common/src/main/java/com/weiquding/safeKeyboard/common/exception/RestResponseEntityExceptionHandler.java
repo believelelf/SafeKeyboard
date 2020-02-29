@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -31,7 +30,7 @@ import javax.servlet.http.HttpServletRequest;
  */
 @Slf4j
 @ControllerAdvice
-public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+public class RestResponseEntityExceptionHandler {
 
 
     @Autowired
@@ -39,7 +38,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
 
 
     @ExceptionHandler({Exception.class})
-    public final ResponseEntity<Object> handleGlobalException(Exception ex, WebRequest request) throws Exception {
+    public final ResponseEntity<Result> handleGlobalException(Exception ex, WebRequest request) throws Exception {
         ErrorDetail errorDetail = exceptionHandler.handleException(ex, request.getLocale());
         if (request instanceof ServletWebRequest) {
             ServletWebRequest servletWebRequest = (ServletWebRequest) request;
@@ -51,7 +50,7 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             errorDetail.setPath(httpServletRequest.getRequestURI());
         }
         logError(errorDetail, ex);
-        return handleExceptionInternal(ex, Result.fail(errorDetail), new HttpHeaders(), HttpStatus.OK, request);
+        return new ResponseEntity<>(Result.fail(errorDetail), new HttpHeaders(), HttpStatus.OK);
     }
 
     /**

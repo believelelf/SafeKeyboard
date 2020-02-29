@@ -3,7 +3,6 @@ package com.weiquding.safeKeyboard.common.format;
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import com.weiquding.safeKeyboard.common.exception.ErrorDetail;
 import com.weiquding.safeKeyboard.common.exception.ResultFailException;
-import com.weiquding.safeKeyboard.common.util.Constants;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.ResolvableType;
@@ -17,7 +16,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.UUID;
 
 /**
  * Http请求工具类
@@ -85,26 +83,23 @@ public class HttpTransport implements InitializingBean {
      * @param url         请求url
      * @param body        请求参数
      * @param clazz       返回类型
+     * @param header      请求头参数 key1, value1, key2, value2
      * @param <T>         Type
+     * @param <R>         Type
      * @return ResponseEntity
      */
     @SuppressWarnings("all")
-    public <R, T> ResponseEntity<Result<T>> postForEntity(ServiceType serviceType, String url, R body, Class<T> clazz) {
+    public <R, T> ResponseEntity<Result<T>> postForEntity(ServiceType serviceType, String url, R body, Class<T> clazz, String... header) {
         try {
-            RequestEntity requestEntity = null;
-            if (body instanceof RequestEntity) {
-                requestEntity = (RequestEntity) body;
-            } else {
-                requestEntity = RequestEntity
-                        .post(new URI(applyUrl(url)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header(Constants.TRACE_NO, UUID.randomUUID().toString())
-                        .body(body);
-
-            }
+            RequestEntity.BodyBuilder bodyBuilder = RequestEntity
+                    .post(new URI(applyUrl(url)))
+                    .contentType(MediaType.APPLICATION_JSON);
+            // 添加请求头参数
+            addHeaders(bodyBuilder, header);
             if (exchangeHandler != null) {
-                exchangeHandler.handleRequestEntity(requestEntity);
+                exchangeHandler.handleRequestEntity(bodyBuilder);
             }
+            RequestEntity<R> requestEntity = bodyBuilder.body(body);
             // Result<T> 参数化类型
             ResolvableType resolvableType = ResolvableType.forClassWithGenerics(Result.class, clazz);
             ParameterizedTypeReference<Result<T>> typeRef = ParameterizedTypeReference.forType(resolvableType.getType());
@@ -126,18 +121,33 @@ public class HttpTransport implements InitializingBean {
     }
 
     /**
+     * 添加请求头参数
+     *
+     * @param bodyBuilder RequestEntity.BodyBuilder
+     * @param header      请求头参数
+     */
+    private void addHeaders(RequestEntity.BodyBuilder bodyBuilder, String[] header) {
+        if (header != null && header.length > 0 && header.length % 2 == 0) {
+            for (int i = 0; i < header.length; i += 2) {
+                bodyBuilder.header(header[i], header[i + 1]);
+            }
+        }
+    }
+
+    /**
      * POST请求
      *
      * @param serviceType 系统渠道
      * @param url         请求url
      * @param body        请求参数
      * @param clazz       返回类型
+     * @param header      请求头参数 key1, value1, key2, value2
      * @param <T>         Type
      * @return Result
      */
     @SuppressWarnings("all")
-    public <R, T> Result<T> postForObject(ServiceType serviceType, String url, R body, Class<T> clazz) {
-        return postForEntity(serviceType, url, body, clazz).getBody();
+    public <R, T> Result<T> postForObject(ServiceType serviceType, String url, R body, Class<T> clazz, String... header) {
+        return postForEntity(serviceType, url, body, clazz, header).getBody();
     }
 
     private String applyUrl(String url) {

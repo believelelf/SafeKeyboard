@@ -3,7 +3,6 @@ package com.weiquding.safeKeyboard.common.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 /**
  * description
@@ -13,10 +12,9 @@ import lombok.NonNull;
  * @date 2020/2/29
  */
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class GenerateRnsReq {
-    @NonNull
-    private String rnc;
+@NoArgsConstructor
+public class SubmitEncryptedPasswordRsp {
 
+    private boolean result;
 }

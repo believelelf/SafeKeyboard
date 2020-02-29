@@ -15,9 +15,9 @@ public interface ExchangeHandler {
     /**
      * 针对特定渠道，处理请求参数
      *
-     * @param requestEntity 请求参数
+     * @param bodyBuilder 请求参数Builder
      */
-    <R> void handleRequestEntity(RequestEntity<R> requestEntity);
+    void handleRequestEntity(RequestEntity.BodyBuilder bodyBuilder);
 
     /**
      * 针对特定渠道，处理返回数据

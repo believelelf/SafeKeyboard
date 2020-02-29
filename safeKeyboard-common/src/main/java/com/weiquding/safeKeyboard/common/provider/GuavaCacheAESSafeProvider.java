@@ -30,16 +30,15 @@ public class GuavaCacheAESSafeProvider implements SafeProvider {
 
     private static String ALLOW_URI = "allow_uri";
 
+    @SuppressWarnings("unchecked")
     @Override
     public String encryptSafeFields(Map<String, Object> model, EncryptSafeFields metadata, String requestUri, String sessionId) {
-        String[] fields = metadata.fields();
-        String name = metadata.name();
         model.put(ALLOW_URI, requestUri);
         try {
             byte[] bytes = new ObjectMapper().writeValueAsBytes(model);
             byte[] cipherBytes = null;
             String cipherKey = sessionId + ":" + CIPHER_FIELD;
-            Map<String, String> cipherMap = GuavaCache.CLIENT_CACHE.getIfPresent(cipherKey);
+            Map<String, String> cipherMap = (Map<String, String>) GuavaCache.CLIENT_CACHE.getIfPresent(cipherKey);
             if (cipherMap != null) {
                 cipherBytes = Base64.getDecoder().decode(cipherMap.get(CIPHER_FIELD));
             } else {
@@ -60,17 +59,17 @@ public class GuavaCacheAESSafeProvider implements SafeProvider {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Map<String, Object> decryptSafeFields(Map<String, Object> model, DecryptSafeFields metadata, String sessionId) {
-        String newEncryptedMsg = (String) model.get(metadata.name());
-        if (newEncryptedMsg == null) {
+    public Map<String, Object> decryptSafeFields(String safeFieldValue, DecryptSafeFields metadata, String sessionId) {
+        if (safeFieldValue == null) {
             throw new IllegalArgumentException("The encryption field is null");
         }
-        byte[] bytes = Base64.getUrlDecoder().decode(newEncryptedMsg);
+        byte[] bytes = Base64.getUrlDecoder().decode(safeFieldValue);
         byte[] iv = Arrays.copyOf(bytes, 12);
         byte[] encryptedMsg = Arrays.copyOfRange(bytes, 12, bytes.length);
         String cipherKey = sessionId + ":" + CIPHER_FIELD;
-        Map<String, String> cipherMap = GuavaCache.CLIENT_CACHE.getIfPresent(cipherKey);
+        Map<String, String> cipherMap = (Map<String, String>) GuavaCache.CLIENT_CACHE.getIfPresent(cipherKey);
         if (cipherMap == null) {
             throw BaseBPError.ENCRYPTION_KEY.getInfo().initialize();
         }

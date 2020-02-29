@@ -7,27 +7,31 @@ import com.weiquding.safeKeyboard.common.cache.KeyCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
 import com.weiquding.safeKeyboard.common.dto.GenerateRnsReq;
 import com.weiquding.safeKeyboard.common.dto.GenerateRnsRsp;
+import com.weiquding.safeKeyboard.common.dto.SubmitEncryptedPasswordReq;
+import com.weiquding.safeKeyboard.common.dto.SubmitEncryptedPasswordRsp;
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import com.weiquding.safeKeyboard.common.format.HttpTransport;
 import com.weiquding.safeKeyboard.common.format.Result;
 import com.weiquding.safeKeyboard.common.format.ServiceType;
 import com.weiquding.safeKeyboard.common.util.*;
+import com.weiquding.safeKeyboard.dto.ConfirmRsp;
+import com.weiquding.safeKeyboard.dto.GetEncryptedPasswordRsp;
+import com.weiquding.safeKeyboard.dto.SubmitReq;
+import com.weiquding.safeKeyboard.dto.SubmitRsp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.ui.Model;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import javax.crypto.Mac;
+import javax.validation.constraints.NotBlank;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
@@ -56,42 +60,46 @@ public class ClientController {
     private KeyCache keyCache;
 
     /**
-     *
+     * 生成随机数
      */
     @RequestMapping("/generateRNC")
-    public Result<Map<String, String>> generateRNC(String sessionId) {
-        Map<String, String> rncAndPMS = RandomUtil.generateRNCAndPMS();
-        Result<GenerateRnsRsp> result = httpTransport.postForObject(ServiceType.SKBS0001, "/generateRNS", new GenerateRnsReq(rncAndPMS.get("cipherText"), sessionId), GenerateRnsRsp.class);
+    public Result<RandomUtil.RNCAndPMS> generateRNC(
+            @RequestHeader @NotBlank String sessionId
+    ) {
+        RandomUtil.RNCAndPMS rncAndPMS = RandomUtil.generateRNCAndPMS();
+        Result<GenerateRnsRsp> result = httpTransport.postForObject(
+                ServiceType.SKBS0001,
+                "/skbs/generateRNS",
+                new GenerateRnsReq(rncAndPMS.getCipherText()),
+                GenerateRnsRsp.class,
+                "sessionId", sessionId
+        );
         String rns = result.getData().getRns();
         String sign = result.getData().getSign();
         boolean verify = RSAUtil.verifySignByRSAPublicKey(KeyInstance.RSA_PUBLIC_KEY, rns.getBytes(), Base64.getDecoder().decode(sign));
         if (!verify) {
             throw BaseBPError.SIGNATURE_CORRUPTED.getInfo().initialize();
         }
-        rncAndPMS.put("RNS", rns);
-        rncAndPMS.remove("cipherText");
+        rncAndPMS.setRns(rns);
         GuavaCache.CLIENT_CACHE.put(sessionId, rncAndPMS);
-        // 测试用
+        // 测试使用
         return Result.success(rncAndPMS);
     }
 
     /**
-     * 获取密文
+     * 获取密码密文
      *
-     * @param password
-     * @return
+     * @param password  密码明文
+     * @param sessionId 会话ID
+     * @return 密码密文
      */
     @RequestMapping("/getEncryptedPassword")
-    public Map<String, String> getEncryptedPassword(@RequestParam("password") String password, String sessionId) {
-        Map<String, String> map = new HashMap<>(1);
-        Map<String, String> session = GuavaCache.CLIENT_CACHE.getIfPresent(sessionId);
-        String PMS = session.get("PMS");
-        String RNC = session.get("RNC");
-        String RNS = session.get("RNS");
-        byte[][] keyBlock = PRFUtil.generateKeyBlock(PMS, RNC, RNS);
+    public Result<GetEncryptedPasswordRsp> getEncryptedPassword(
+            @RequestParam("password") String password,
+            @RequestHeader @NotBlank String sessionId) {
+        RandomUtil.RNCAndPMS rncAndPMS = (RandomUtil.RNCAndPMS) GuavaCache.CLIENT_CACHE.getIfPresent(sessionId);
+        byte[][] keyBlock = PRFUtil.generateKeyBlock(rncAndPMS.getPms(), rncAndPMS.getRnc(), rncAndPMS.getRns());
         byte[] pwdBytes = password.getBytes(StandardCharsets.UTF_8);
-        // 修改点1： 不拼接randomBytes, 不做混淆了。以使前端相同key加密的两次密文一致，可用于前端密码输入一致的判断。
-
         // 进行摘要
         Mac macInstance = HmacUtil.getMacInstance(HmacUtil.HMAC_SHA_256, keyBlock[0]);
         byte[] macDigest = macInstance.doFinal(pwdBytes);
@@ -102,16 +110,16 @@ public class ClientController {
         // 对称加密
         byte[] encryptedPwd = AESUtil.AES_256_CBC_PKCS7Padding.encryptByAESKey(keyBlock[2], ivParameter, pwdBytes);
 
-        log.info("clientMacKey:{}", Arrays.toString(keyBlock[0]));
-        log.info("clientWriteKey:{}", Arrays.toString(keyBlock[2]));
-        log.info("ivParameter.length:{}", ivParameter.length);
-        log.info("ivParameter:{}", Arrays.toString(ivParameter));
-        log.info("pwdBytes.length:{}", pwdBytes.length);
-        log.info("pwdBytes:{}", Arrays.toString(pwdBytes));
-        log.info("macDigest.length:{}", macDigest.length);
-        log.info("macDigest:{}", Arrays.toString(macDigest));
-        log.info("encryptedPwd.length:{}", encryptedPwd.length);
-        log.info("encryptedPwd:{}", Arrays.toString(encryptedPwd));
+        log.debug("clientMacKey:{}", Arrays.toString(keyBlock[0]));
+        log.debug("clientWriteKey:{}", Arrays.toString(keyBlock[2]));
+        log.debug("ivParameter.length:{}", ivParameter.length);
+        log.debug("ivParameter:{}", Arrays.toString(ivParameter));
+        log.debug("pwdBytes.length:{}", pwdBytes.length);
+        log.debug("pwdBytes:{}", Arrays.toString(pwdBytes));
+        log.debug("macDigest.length:{}", macDigest.length);
+        log.debug("macDigest:{}", Arrays.toString(macDigest));
+        log.debug("encryptedPwd.length:{}", encryptedPwd.length);
+        log.debug("encryptedPwd:{}", Arrays.toString(encryptedPwd));
 
         //修改点3： IV不再拼接到密码字节中
         byte[] cipherText = new byte[encryptedPwd.length + macDigest.length];
@@ -119,68 +127,56 @@ public class ClientController {
         System.arraycopy(macDigest, 0, cipherText, encryptedPwd.length, macDigest.length);
 
         String encryptedPwdString = Base64.getEncoder().encodeToString(cipherText);
-        map.put("password", URLEncoder.encode(encryptedPwdString, StandardCharsets.UTF_8));
-        return map;
+        return Result.success(new GetEncryptedPasswordRsp(URLEncoder.encode(encryptedPwdString, StandardCharsets.UTF_8)));
     }
 
     /**
-     * 提交密文
+     * 模拟提交密文到服务端
      *
-     * @param password
-     * @return
+     * @param password  密文
+     * @param sessionId 会话ID
+     * @return 规则是否ok
      */
     @RequestMapping("/submitEncryptedPassword")
-    public Map<String, Object> submitEncryptedPassword(@RequestParam("password") String password, String sessionId) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        map.add("password", URLEncoder.encode(password, StandardCharsets.UTF_8));
-        map.add("sessionId", sessionId);
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
-
-        Map<String, Object> retVal = restTemplate.postForObject("http://localhost:8082/submitEncryptedPassword", request, Map.class);
-
-        return retVal;
-
+    public Result<SubmitEncryptedPasswordRsp> submitEncryptedPassword(
+            @RequestParam("password") String password,
+            @RequestHeader @NotBlank String sessionId) {
+        return httpTransport.postForObject(
+                ServiceType.SKBS0001,
+                "/skbs/submitEncryptedPassword",
+                new SubmitEncryptedPasswordReq(URLEncoder.encode(password, StandardCharsets.UTF_8)),
+                SubmitEncryptedPasswordRsp.class,
+                "sessionId", sessionId
+        );
     }
 
     /**
      * 测试报文加密
      *
-     * @param sessionId
-     * @param model
-     * @param params
+     * @param sessionId 会话Id
      */
     @EncryptSafeFields(fields = {"account", "toAccount", "tranAmount"})
     @RequestMapping("/confirm")
-    public Map<String, Object> confirm(String sessionId, Model model, @RequestParam Map<String, Object> params) {
-        log.info("confirm execute..., args:[{}]", model);
-        model.addAttribute("operation", "confirm");
-        // 放置返回参数
-        Map<String, Object> returnMap = new HashMap<>();
-        returnMap.put("account", params.get("account"));
-        returnMap.put("toAccount", params.get("toAccount"));
-        returnMap.put("tranAmount", params.get("tranAmount"));
-        return returnMap;
+    public Result<ConfirmRsp> confirm(
+            @RequestHeader String sessionId
+    ) {
+        return Result.success(new ConfirmRsp("6666", "3333", "520"));
     }
 
     /**
      * 测试报文解密
      *
-     * @param sessionId
-     * @param model
-     * @param params
+     * @param sessionId 会话ID
+     * @param submitReq 请求参数
      */
     @DecryptSafeFields(allowUris = "/confirm")
     @RequestMapping("/submit")
-    public Map<String, Object> submit(String sessionId, Model model, @RequestParam Map<String, Object> params) {
-        log.info("submit execute...,args:[{}]", model);
-        model.addAttribute("operation", "submit");
-
-        // 放置返回参数
-        Map<String, Object> returnMap = new HashMap<>();
-        returnMap.putAll(model.asMap());
-        return returnMap;
+    public Result<SubmitRsp> submit(
+            @RequestHeader String sessionId,
+            @RequestBody SubmitReq submitReq
+    ) {
+        log.info("submit execute...,args:[{}]", submitReq);
+        return Result.success(new SubmitRsp(submitReq));
     }
 
     @SuppressWarnings("unchecked")

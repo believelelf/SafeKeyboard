@@ -23,7 +23,7 @@ public class UserMock {
      * @return userId
      */
     public String getUserIdBySessionId(String sessionId){
-        Map<String, String> sessionMapping = GuavaCache.SERVER_CACHE.getIfPresent("sessionId");
+        Map<String, String> sessionMapping = (Map<String, String>) GuavaCache.SERVER_CACHE.getIfPresent("sessionId");
         return sessionMapping.get(sessionId);
     }
 }

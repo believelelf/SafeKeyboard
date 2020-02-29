@@ -2,6 +2,8 @@ package com.weiquding.safeKeyboard.common.aspect;
 
 import com.weiquding.safeKeyboard.common.annotation.DecryptSafeFields;
 import com.weiquding.safeKeyboard.common.provider.SafeProvider;
+import com.weiquding.safeKeyboard.common.util.ReflectUtil;
+import com.weiquding.safeKeyboard.common.util.WebUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -12,7 +14,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
-import org.springframework.ui.Model;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -33,18 +34,21 @@ public class DecryptSafeFieldsAspect implements ApplicationContextAware {
 
     @Pointcut("(@within(org.springframework.web.bind.annotation.RestController) || @within(org.springframework.stereotype.Controller))"
             + "&& @annotation(com.weiquding.safeKeyboard.common.annotation.DecryptSafeFields)"
+            + "&& execution(public com.weiquding.safeKeyboard.common.format.Result com.weiquding.safeKeyboard..*.*(..))"
     )
     public void decryptSafeFieldsPointcut() {
     }
 
-    @Before("decryptSafeFieldsPointcut() && args(..,model,params)")
-    public void decryptSafeFields(JoinPoint joinPoint, Model model, Map<String, Object> params) {
-       log.info("aspect[decryptSafeFields] execute..., model:[{}],parameterMap[{}]", model, params);
-        Method targetMethod = MethodSignature.class.cast(joinPoint.getSignature()).getMethod();
+    @Before("decryptSafeFieldsPointcut() && args(..,req)")
+    public void decryptSafeFields(JoinPoint joinPoint, Object req) {
+        log.info("aspect[decryptSafeFields] execute..., req[{}]", req);
+        Method targetMethod = ((MethodSignature) joinPoint.getSignature()).getMethod();
         DecryptSafeFields metadata = targetMethod.getAnnotation(DecryptSafeFields.class);
         SafeProvider safeProvider = this.applicationContext.getBean(metadata.safeProvider(), SafeProvider.class);
-        Map<String, Object> retMap = safeProvider.decryptSafeFields(params, metadata, (String) params.get("sessionId"));
-        model.addAllAttributes(retMap);
+        Map<String, Object> retMap = safeProvider.decryptSafeFields((String) ReflectUtil.getFieldValue(req, metadata.name()), metadata, WebUtil.getRequest().getHeader("sessionId"));
+        for (Map.Entry<String, Object> entry : retMap.entrySet()) {
+            ReflectUtil.setSafeFieldValue(req, entry.getKey(), entry.getValue());
+        }
     }
 
     @Override

@@ -30,7 +30,7 @@ public class CheckUserServiceImpl implements CheckUserService {
         } else {
             //  密码比较不成功，且当日为初次校验
             model.setErrortimes(1);
-            userPasswordMapper.updateUserPassword(model);
+            userPasswordMapper.resetUserPassword(model);
             throw BaseBPError.PASSWORD_INCORRECT.getInfo().initialize(5);
         }
         return true;

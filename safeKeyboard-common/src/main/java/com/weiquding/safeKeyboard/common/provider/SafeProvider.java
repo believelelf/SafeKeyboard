@@ -2,9 +2,7 @@ package com.weiquding.safeKeyboard.common.provider;
 
 import com.weiquding.safeKeyboard.common.annotation.DecryptSafeFields;
 import com.weiquding.safeKeyboard.common.annotation.EncryptSafeFields;
-import org.springframework.ui.Model;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
@@ -29,10 +27,10 @@ public interface SafeProvider {
 
     /***
      * 解密输入安全域字段
-     * @param model 数据模型
+     * @param safeFieldValue 加密字段
      * @param metadata 注解元数据
      * @param sessionId sessionId
      * @return 解密后参数
      */
-    Map<String, Object> decryptSafeFields(Map<String, Object> model, DecryptSafeFields metadata, String sessionId);
+    Map<String, Object> decryptSafeFields(String safeFieldValue, DecryptSafeFields metadata, String sessionId);
 }
