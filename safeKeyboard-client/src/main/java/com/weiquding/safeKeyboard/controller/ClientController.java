@@ -5,10 +5,7 @@ import com.weiquding.safeKeyboard.common.annotation.EncryptSafeFields;
 import com.weiquding.safeKeyboard.common.cache.GuavaCache;
 import com.weiquding.safeKeyboard.common.cache.KeyCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
-import com.weiquding.safeKeyboard.common.dto.GenerateRnsReq;
-import com.weiquding.safeKeyboard.common.dto.GenerateRnsRsp;
-import com.weiquding.safeKeyboard.common.dto.SubmitEncryptedPasswordReq;
-import com.weiquding.safeKeyboard.common.dto.SubmitEncryptedPasswordRsp;
+import com.weiquding.safeKeyboard.common.dto.*;
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import com.weiquding.safeKeyboard.common.format.HttpTransport;
 import com.weiquding.safeKeyboard.common.format.Result;
@@ -21,11 +18,6 @@ import com.weiquding.safeKeyboard.dto.SubmitRsp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -181,7 +173,7 @@ public class ClientController {
 
     @SuppressWarnings("unchecked")
     @RequestMapping("/secureMessage")
-    public Map<String, Object> secureMessage() {
+    public Result<Map<String, Object>> secureMessage() {
 
         String appId = "test_app_id";
         PrivateKey privateKey = keyCache.getPrivateKeyByAppId(appId);
@@ -191,20 +183,22 @@ public class ClientController {
         params.put(SecureUtil.APPID_KEY, appId);
         params.put("className", this.getClass().getName());
         log.info("加密前数据：[{}]", params);
-        Map<String, Object> retMap = SecureUtil.encryptAndSignature(privateKey, publicKey, params);
-        log.info("加密后数据：[{}]", retMap);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
-        for (Map.Entry<String, Object> entry : retMap.entrySet()) {
-            map.add(entry.getKey(), entry.getValue());
-        }
-        HttpEntity<MultiValueMap<String, Object>> request = new HttpEntity<>(map, headers);
-        Map<String, Object> retVal = restTemplate.postForObject("http://localhost:8082/secureMessage", request, Map.class);
+
+        EncryptAndSignatureDto encryptedData = SecureUtil.encryptAndSignature(privateKey, publicKey, appId, params);
+        log.info("加密后数据：[{}]", encryptedData);
+
+        Result<EncryptAndSignatureDto> retVal = httpTransport.postForObject(
+                ServiceType.SKBS0001,
+                "/skbs/secureMessage",
+                encryptedData,
+                EncryptAndSignatureDto.class);
+
         log.info("解密前数据：[{}]", retVal);
-        retVal = SecureUtil.decryptAndVerifySign(privateKey, publicKey, retVal);
-        log.info("解密后数据：[{}]", retVal);
-        return retVal;
+
+        Map<String, Object> decryptedData = SecureUtil.decryptAndVerifySign(privateKey, publicKey, retVal.getData(), Map.class);
+        log.info("解密后数据：[{}]", decryptedData);
+
+        return Result.success(decryptedData);
     }
 
 }

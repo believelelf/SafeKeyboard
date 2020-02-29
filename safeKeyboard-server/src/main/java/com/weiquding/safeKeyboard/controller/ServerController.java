@@ -5,10 +5,7 @@ import com.weiquding.safeKeyboard.common.annotation.DecryptAndVerifySign;
 import com.weiquding.safeKeyboard.common.annotation.EncryptAndSignature;
 import com.weiquding.safeKeyboard.common.cache.GuavaCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
-import com.weiquding.safeKeyboard.common.dto.GenerateRnsReq;
-import com.weiquding.safeKeyboard.common.dto.GenerateRnsRsp;
-import com.weiquding.safeKeyboard.common.dto.SubmitEncryptedPasswordReq;
-import com.weiquding.safeKeyboard.common.dto.SubmitEncryptedPasswordRsp;
+import com.weiquding.safeKeyboard.common.dto.*;
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import com.weiquding.safeKeyboard.common.format.Result;
 import com.weiquding.safeKeyboard.common.util.*;
@@ -97,7 +94,7 @@ public class ServerController {
         }
         // 真实的密码
         String pwd = new String(encryptedPwd, StandardCharsets.UTF_8);
-        // 测试分支: 设置密码时
+        // 验证密码规则
         checkUserService.checkPasswordRule(pwd);
         // 对真实的密码进行哈希
         String hashedPassword = PBKDF2Util.hashingPassword(pwd);
@@ -108,10 +105,10 @@ public class ServerController {
     @DecryptAndVerifySign
     @EncryptAndSignature
     @RequestMapping("/secureMessage")
-    public Map<String, Object> secureMessage(@RequestParam Map<String, Object> params) {
-        Map<String, Object> result = new HashMap<>();
-        result.put(SecureUtil.APPID_KEY, JvmKeyCache.TEST_APP_ID);
-        result.put("className", this.getClass().getName());
-        return result;
+    public Result<EncryptAndSignatureDto> secureMessage(@RequestBody EncryptAndSignatureDto encryptedData) {
+        Map<String, Object> data = new HashMap<>();
+        data.put(SecureUtil.APPID_KEY, JvmKeyCache.TEST_APP_ID);
+        data.put("className", this.getClass().getName());
+        return Result.success(new EncryptAndSignatureDto<Map<String, Object>>(JvmKeyCache.TEST_APP_ID, data));
     }
 }

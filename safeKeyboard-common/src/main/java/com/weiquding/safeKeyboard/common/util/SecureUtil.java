@@ -1,6 +1,7 @@
 package com.weiquding.safeKeyboard.common.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.weiquding.safeKeyboard.common.dto.EncryptAndSignatureDto;
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.Assert;
@@ -11,8 +12,6 @@ import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 安全传输工具类
@@ -38,13 +37,13 @@ public class SecureUtil {
      *
      * @param privateKey 本方RSA私钥
      * @param publicKey  对方RSA公钥
+     * @param appId      应用ID
      * @param message    数据
      * @return 加密及签名结果
      */
-    public static Map<String, Object> encryptAndSignature(PrivateKey privateKey, PublicKey publicKey, Map<String, Object> message) {
+    public static EncryptAndSignatureDto encryptAndSignature(PrivateKey privateKey, PublicKey publicKey, String appId, Object message) {
         checkPreConditions(privateKey, publicKey, message);
 
-        String appId = (String) message.get(APPID_KEY);
         Assert.notNull(appId, "appId must not be empty");
 
         // 产生AES对称密钥
@@ -65,12 +64,12 @@ public class SecureUtil {
         // 本方RSA私钥对数据进行签名
         byte[] signature = RSAUtil.signByRSAPrivateKey((RSAPrivateKey) privateKey, data);
 
-        Map<String, Object> result = new HashMap<>();
-        result.put(APPID_KEY, appId);
-        result.put(ENCRYPTED_DATA, Base64.getUrlEncoder().encodeToString(encryptedData));
-        result.put(ENCRYPTED_KEY, Base64.getUrlEncoder().encodeToString(encryptedKey));
-        result.put(SIGNATURE, Base64.getUrlEncoder().encodeToString(signature));
-        return result;
+        return new EncryptAndSignatureDto(
+                appId,
+                Base64.getUrlEncoder().encodeToString(signature),
+                Base64.getUrlEncoder().encodeToString(encryptedKey),
+                Base64.getUrlEncoder().encodeToString(encryptedData)
+        );
     }
 
     /**
@@ -78,16 +77,17 @@ public class SecureUtil {
      *
      * @param privateKey 本方RSA私钥
      * @param publicKey  对方RSA公钥
-     * @param message    数据
+     * @param message    加密数据
+     * @param valueType  数据类型
      * @return 解密数据
      */
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> decryptAndVerifySign(PrivateKey privateKey, PublicKey publicKey, Map<String, Object> message) {
+    public static <T> T decryptAndVerifySign(PrivateKey privateKey, PublicKey publicKey, EncryptAndSignatureDto message, Class<T> valueType) {
         checkPreConditions(privateKey, publicKey, message);
 
-        String encryptedKey = (String) message.get(ENCRYPTED_KEY);
-        String encryptedData = (String) message.get(ENCRYPTED_DATA);
-        String signature = (String) message.get(SIGNATURE);
+        String encryptedKey = message.getEncryptedKey();
+        String encryptedData = message.getEncryptedData();
+        String signature = message.getSignature();
 
         if (encryptedKey == null || encryptedData == null || signature == null) {
             throw new IllegalArgumentException("Invalid input parameter");
@@ -106,17 +106,17 @@ public class SecureUtil {
             throw new IllegalStateException("Invalid data");
         }
         try {
-            return JsonUtil.getObjectMapper().readValue(data, Map.class);
+            return JsonUtil.getObjectMapper().readValue(data, valueType);
         } catch (IOException e) {
             throw BaseBPError.PROCESSING_JSON_DATA.getInfo().initialize(e);
         }
     }
 
 
-    private static void checkPreConditions(PrivateKey privateKey, PublicKey publicKey, Map<String, Object> message) {
+    private static void checkPreConditions(PrivateKey privateKey, PublicKey publicKey, Object message) {
         Assert.isInstanceOf(RSAPrivateKey.class, privateKey, "privateKey must be an instance of RSAPrivateKey");
         Assert.isInstanceOf(RSAPublicKey.class, publicKey, "publicKey must be an instance of RSAPublicKey");
-        Assert.notEmpty(message, "message must not be empty");
+        Assert.notNull(message, "message must not be null");
     }
 
 

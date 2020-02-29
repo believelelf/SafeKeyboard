@@ -1,6 +1,7 @@
 package com.weiquding.safeKeyboard.common.aspect;
 
 import com.weiquding.safeKeyboard.common.cache.KeyCache;
+import com.weiquding.safeKeyboard.common.dto.EncryptAndSignatureDto;
 import com.weiquding.safeKeyboard.common.util.SecureUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.Aspect;
@@ -28,16 +29,19 @@ public class DecryptAndVerifySignAspect {
     private KeyCache keyCache;
 
     @SuppressWarnings("unchecked")
-    @Before(value = "@annotation(com.weiquding.safeKeyboard.common.annotation.DecryptAndVerifySign) && args(..,params)")
-    public void decryptAndVerifySign(Map<String, Object> params) {
-        log.info("解密前参数：[{}]", params);
-        String appId = (String) params.get(SecureUtil.APPID_KEY);
+    @Before(value =
+            "@annotation(com.weiquding.safeKeyboard.common.annotation.DecryptAndVerifySign) "
+                    + "&& execution(public * com.weiquding.safeKeyboard..*.*(..,com.weiquding.safeKeyboard.common.dto.EncryptAndSignatureDto))"
+                    + "&& args(.., encryptedData)"
+    )
+    public void decryptAndVerifySign(EncryptAndSignatureDto encryptedData) {
+        log.info("解密前参数：[{}]", encryptedData);
+        String appId = encryptedData.getAppId();
         PrivateKey privateKey = keyCache.getPrivateKeyByAppId(appId);
         PublicKey publicKey = keyCache.getPublicKeyByAppId(appId);
-        Map<String, Object> result = SecureUtil.decryptAndVerifySign(privateKey, publicKey, params);
+        Map<String, Object> result = SecureUtil.decryptAndVerifySign(privateKey, publicKey, encryptedData, Map.class);
         log.info("解密完成参数：[{}]", result);
-        params.clear();
-        params.putAll(result);
+        encryptedData.setPlainData(result);
     }
 
 }
