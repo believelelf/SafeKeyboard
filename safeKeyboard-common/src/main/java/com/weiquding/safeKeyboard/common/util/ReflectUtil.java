@@ -26,14 +26,13 @@ public class ReflectUtil {
     public static void setSafeFieldValue(Object data, String field, Object... value) {
         try {
             PropertyDescriptor propertyDescriptor = BeanUtils.getPropertyDescriptor(data.getClass(), field);
-            if (propertyDescriptor == null) {
-                throw new IllegalStateException(String.format("PropertyDescriptor [%s] must not be null", field));
+            if (propertyDescriptor != null) {
+                Method writeMethod = propertyDescriptor.getWriteMethod();
+                if (writeMethod == null) {
+                    throw new IllegalStateException(String.format("WriteMethod [%s] must not be null", field));
+                }
+                writeMethod.invoke(data, value);
             }
-            Method writeMethod = propertyDescriptor.getWriteMethod();
-            if (writeMethod == null) {
-                throw new IllegalStateException(String.format("WriteMethod [%s] must not be null", field));
-            }
-            writeMethod.invoke(data, value);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new IllegalStateException("An error occurred while writing value to data", e);
         }
@@ -68,17 +67,17 @@ public class ReflectUtil {
             return map.get(field);
         }
         PropertyDescriptor propertyDescriptor = BeanUtils.getPropertyDescriptor(data.getClass(), field);
-        if (propertyDescriptor == null) {
-            throw new IllegalStateException(String.format("PropertyDescriptor [%s] must not be null", field));
+        if (propertyDescriptor != null) {
+            Method readMethod = propertyDescriptor.getReadMethod();
+            if (readMethod == null) {
+                throw new IllegalStateException(String.format("ReadMethod [%s] must not be null", field));
+            }
+            try {
+                return readMethod.invoke(data);
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new IllegalStateException("An error occurred while invoking object", e);
+            }
         }
-        Method readMethod = propertyDescriptor.getReadMethod();
-        if (readMethod == null) {
-            throw new IllegalStateException(String.format("ReadMethod [%s] must not be null", field));
-        }
-        try {
-            return readMethod.invoke(data, field);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalStateException("An error occurred while invoking object", e);
-        }
+        return null;
     }
 }
