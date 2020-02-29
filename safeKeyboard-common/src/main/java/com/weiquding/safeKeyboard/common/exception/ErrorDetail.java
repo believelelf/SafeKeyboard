@@ -1,6 +1,8 @@
 package com.weiquding.safeKeyboard.common.exception;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.weiquding.safeKeyboard.common.util.Constants;
+import com.weiquding.safeKeyboard.common.util.WebUtil;
 import lombok.Data;
 
 import java.sql.Timestamp;
@@ -25,7 +27,7 @@ public class ErrorDetail {
     /**
      * 错误序号
      */
-    private String id = UUID.randomUUID().toString();
+    private String id;
 
     /**
      * 返回码
@@ -68,13 +70,24 @@ public class ErrorDetail {
      */
     private Severity severity = Severity.SUCCESS;
 
+    private void initId() {
+        try {
+            String traceNo = WebUtil.getRequest().getHeader(Constants.TRACE_NO);
+            this.id = (traceNo != null) ? traceNo : UUID.randomUUID().toString();
+        } catch (Exception e) {
+            this.id = UUID.randomUUID().toString();
+        }
+    }
+
     public ErrorDetail() {
+        initId();
     }
 
     public ErrorDetail(String code, String message, String cause) {
         this.code = code;
         this.message = message;
         this.cause = cause;
+        initId();
     }
 
     public ErrorDetail(String code, String message, String cause, Severity severity) {
@@ -82,6 +95,7 @@ public class ErrorDetail {
         this.message = message;
         this.cause = cause;
         this.severity = severity;
+        initId();
     }
 
     /**
