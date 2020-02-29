@@ -75,7 +75,7 @@ public class ReflectUtil {
             try {
                 return readMethod.invoke(data);
             } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new IllegalStateException("An error occurred while invoking object", e);
+                throw new IllegalStateException("An error occurred while reading value from data", e);
             }
         }
         return null;
