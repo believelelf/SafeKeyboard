@@ -96,11 +96,13 @@ public class DefaultMessagesProvider implements MessagesProvider {
         if (errorMsg != null) {
             return errorMsg;
         }
+        // 使用异常全路径类名翻译错误信息
         message = th.getClass().getName();
         errorMsg = resolveMessageCode(errorMessageSource, message, null, locale);
         if (errorMsg != null) {
             return errorMsg;
         }
+        // 使用默认错误码翻译错误信息
         message = this.defaultMappingCode;
         errorMsg = resolveMessageCode(errorMessageSource, message, null, locale);
         if (errorMsg != null) {

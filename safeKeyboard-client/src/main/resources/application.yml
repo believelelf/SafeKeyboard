@@ -1,6 +1,5 @@
 server:
   port: 8081
-
 application:
   appId: test_app_id
 base:
@@ -12,3 +11,6 @@ base:
     errors-bundles:
       basename: classpath:config/msg/client-errors,classpath:config/msg/errors
       cache-duration: PT1H
+spring:
+  application:
+    name: SafeKeyboard-client

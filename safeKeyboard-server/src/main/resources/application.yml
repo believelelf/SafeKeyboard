@@ -2,12 +2,7 @@ server:
   port: 8082
 spring:
   application:
-    name: SafeKeyboard
-  datasource:
-    url: jdbc:mysql://localhost:3306/user?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
-    driverClassName: com.mysql.cj.jdbc.Driver
-    username: root
-    password: root
+    name: SafeKeyboard-Server
 base:
   messages:
     type: database # bundle or database

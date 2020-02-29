@@ -72,10 +72,6 @@ public class HttpTransport implements InitializingBean {
         this.rootUri = rootUri;
     }
 
-    // TODO 4. 服务端报文返回报文修改
-    // TODO 5. 切面修改
-
-
     /**
      * POST请求
      *

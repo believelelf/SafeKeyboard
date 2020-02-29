@@ -1,9 +1,13 @@
 package com.weiquding.safeKeyboard.common.exception;
 
 import com.weiquding.safeKeyboard.common.format.Result;
+import com.weiquding.safeKeyboard.common.mapper.ErrorsCountMapper;
 import com.weiquding.safeKeyboard.common.util.Constants;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +36,8 @@ import javax.servlet.http.HttpServletRequest;
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler {
 
+    @Autowired
+    private ErrorsCountMapper errorsCountMapper;
 
     @Autowired
     private com.weiquding.safeKeyboard.common.exception.ExceptionHandler exceptionHandler;
@@ -49,8 +55,24 @@ public class RestResponseEntityExceptionHandler {
             }
             errorDetail.setPath(httpServletRequest.getRequestURI());
         }
+        // 错误信息统计
+        addErrorsCount(errorDetail);
+        // 打印异常栈信息
         logError(errorDetail, ex);
         return new ResponseEntity<>(Result.fail(errorDetail), new HttpHeaders(), HttpStatus.OK);
+    }
+
+    /**
+     * 错误信息统计
+     *
+     * @param errorDetail 错误信息
+     */
+    private void addErrorsCount(ErrorDetail errorDetail) {
+        try {
+            errorsCountMapper.insertErrorDetail(errorDetail);
+        } catch (Exception e) {
+            log.warn("An error occurred during error message statistics: [{}]", errorDetail.getCode(), e);
+        }
     }
 
     /**
@@ -68,5 +90,4 @@ public class RestResponseEntityExceptionHandler {
         }
         log.error("An exception occurred on the request: [{}]", errorDetail, ex);
     }
-
 }

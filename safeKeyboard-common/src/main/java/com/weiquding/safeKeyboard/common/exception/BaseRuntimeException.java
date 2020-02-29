@@ -28,17 +28,17 @@ public class BaseRuntimeException extends RuntimeException implements MessageSou
         return super.getStackTrace();
     }
 
-    public BaseRuntimeException(String code) {
+    protected BaseRuntimeException(String code) {
         super(joinMessage(code, null));
         this.messageSourceResolvable = new DefaultMessageSourceResolvable(code);
     }
 
-    public BaseRuntimeException(String code, Object[] args) {
+    protected BaseRuntimeException(String code, Object[] args) {
         super(joinMessage(code, null));
         this.messageSourceResolvable = new DefaultMessageSourceResolvable(new String[]{code}, args);
     }
 
-    public BaseRuntimeException(String code, Throwable th) {
+    protected BaseRuntimeException(String code, Throwable th) {
         super(joinMessage(code, null), th);
         if (th instanceof MessageSourceResolvable) {
             this.messageSourceResolvable = new DefaultMessageSourceResolvable((MessageSourceResolvable) th);
@@ -48,7 +48,7 @@ public class BaseRuntimeException extends RuntimeException implements MessageSou
         }
     }
 
-    public BaseRuntimeException(String code, Object[] args, Throwable th) {
+    protected BaseRuntimeException(String code, Object[] args, Throwable th) {
         super(joinMessage(code, null), th);
         if (th instanceof MessageSourceResolvable) {
             this.messageSourceResolvable = new DefaultMessageSourceResolvable((MessageSourceResolvable) th);
@@ -57,17 +57,17 @@ public class BaseRuntimeException extends RuntimeException implements MessageSou
         }
     }
 
-    public BaseRuntimeException(String code, String defaultMsg) {
+    protected BaseRuntimeException(String code, String defaultMsg) {
         super(joinMessage(code, defaultMsg));
         this.messageSourceResolvable = new DefaultMessageSourceResolvable(new String[]{code}, null, defaultMsg);
     }
 
-    public BaseRuntimeException(String code, Object[] args, String defaultMsg) {
+    protected BaseRuntimeException(String code, Object[] args, String defaultMsg) {
         super(joinMessage(code, defaultMsg));
         this.messageSourceResolvable = new DefaultMessageSourceResolvable(new String[]{code}, args, defaultMsg);
     }
 
-    public BaseRuntimeException(String code, String defaultMsg, Throwable th) {
+    protected BaseRuntimeException(String code, String defaultMsg, Throwable th) {
         super(joinMessage(code, defaultMsg), th);
         if (th instanceof MessageSourceResolvable) {
             this.messageSourceResolvable = new DefaultMessageSourceResolvable((MessageSourceResolvable) th);
@@ -76,7 +76,7 @@ public class BaseRuntimeException extends RuntimeException implements MessageSou
         }
     }
 
-    public BaseRuntimeException(String code, Object[] args, String defaultMsg, Throwable th) {
+    protected BaseRuntimeException(String code, Object[] args, String defaultMsg, Throwable th) {
         super(joinMessage(code, defaultMsg), th);
         if (th instanceof MessageSourceResolvable) {
             this.messageSourceResolvable = new DefaultMessageSourceResolvable((MessageSourceResolvable) th);
