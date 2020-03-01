@@ -66,9 +66,9 @@ public class SecureUtil {
 
         return new EncryptAndSignatureDto(
                 appId,
-                Base64.getUrlEncoder().encodeToString(signature),
-                Base64.getUrlEncoder().encodeToString(encryptedKey),
-                Base64.getUrlEncoder().encodeToString(encryptedData)
+                MyBase64.getUrlEncoder().encodeToString(signature),
+                MyBase64.getUrlEncoder().encodeToString(encryptedKey),
+                MyBase64.getUrlEncoder().encodeToString(encryptedData)
         );
     }
 
@@ -94,14 +94,14 @@ public class SecureUtil {
         }
 
         // 本方RSA私钥解密AES密钥
-        byte[] secretKey = RSAUtil.decryptByRSAPrivateKey((RSAPrivateKey) privateKey, Base64.getUrlDecoder().decode(encryptedKey));
+        byte[] secretKey = RSAUtil.decryptByRSAPrivateKey((RSAPrivateKey) privateKey, MyBase64.getUrlDecoder().decode(encryptedKey));
         log.info("本方RSA私钥解密AES密钥[{}]", Arrays.toString(secretKey));
 
         // AES对称解密数据
-        byte[] data = AESUtil.AES_256_CBC_PKCS5Padding.decryptByAESKey(secretKey, Base64.getUrlDecoder().decode(encryptedData));
+        byte[] data = AESUtil.AES_256_CBC_PKCS5Padding.decryptByAESKey(secretKey, MyBase64.getUrlDecoder().decode(encryptedData));
 
         // 对方RSA公钥验签数据及签名
-        boolean isVerifyed = RSAUtil.verifySignByRSAPublicKey((RSAPublicKey) publicKey, data, Base64.getUrlDecoder().decode(signature));
+        boolean isVerifyed = RSAUtil.verifySignByRSAPublicKey((RSAPublicKey) publicKey, data, MyBase64.getUrlDecoder().decode(signature));
         if (!isVerifyed) {
             throw new IllegalStateException("Invalid data");
         }

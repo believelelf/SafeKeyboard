@@ -4,16 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.weiquding.safeKeyboard.common.annotation.DecryptSafeFields;
 import com.weiquding.safeKeyboard.common.annotation.EncryptSafeFields;
-import com.weiquding.safeKeyboard.common.cache.GuavaCache;
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import com.weiquding.safeKeyboard.common.util.AESUtil;
-import com.weiquding.safeKeyboard.common.util.Base64;
-import com.weiquding.safeKeyboard.common.util.RandomUtil;
+import com.weiquding.safeKeyboard.common.util.MyBase64;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -26,9 +23,15 @@ import java.util.Map;
 @Component("safeProvider")
 public class GuavaCacheAESSafeProvider implements SafeProvider {
 
-    private static String CIPHER_FIELD = "cipher";
+    private static final String CIPHER_FIELD = "cipher";
 
-    private static String ALLOW_URI = "allow_uri";
+    private static final String ALLOW_URI = "allow_uri";
+
+    private SecretKeyProvider secretKeyProvider;
+
+    public GuavaCacheAESSafeProvider(SecretKeyProvider secretKeyProvider) {
+        this.secretKeyProvider = secretKeyProvider;
+    }
 
     @SuppressWarnings("unchecked")
     @Override
@@ -36,24 +39,13 @@ public class GuavaCacheAESSafeProvider implements SafeProvider {
         model.put(ALLOW_URI, requestUri);
         try {
             byte[] bytes = new ObjectMapper().writeValueAsBytes(model);
-            byte[] cipherBytes = null;
-            String cipherKey = sessionId + ":" + CIPHER_FIELD;
-            Map<String, String> cipherMap = (Map<String, String>) GuavaCache.CLIENT_CACHE.getIfPresent(cipherKey);
-            if (cipherMap != null) {
-                cipherBytes = Base64.getDecoder().decode(cipherMap.get(CIPHER_FIELD));
-            } else {
-                cipherBytes = RandomUtil.generateRandomBytes(16);
-                cipherMap = new HashMap<>();
-                cipherMap.put(CIPHER_FIELD, Base64.getEncoder().encodeToString(cipherBytes));
-                GuavaCache.CLIENT_CACHE.put(cipherKey, cipherMap);
-            }
-
+            byte[] cipherBytes = secretKeyProvider.getSecretKey(sessionId + ":" + CIPHER_FIELD, true);
             byte[] iv = AESUtil.AES_256_GCM_NoPadding.ivParameter();
             byte[] encryptedMsg = AESUtil.AES_256_GCM_NoPadding.encryptByAESKey(cipherBytes, iv, bytes);
             byte[] newEncryptedMsg = new byte[iv.length + encryptedMsg.length];
             System.arraycopy(iv, 0, newEncryptedMsg, 0, iv.length);
             System.arraycopy(encryptedMsg, 0, newEncryptedMsg, iv.length, encryptedMsg.length);
-            return Base64.getUrlEncoder().encodeToString(newEncryptedMsg);
+            return MyBase64.getUrlEncoder().encodeToString(newEncryptedMsg);
         } catch (JsonProcessingException e) {
             throw BaseBPError.PROCESSING_JSON_DATA.getInfo().initialize(e);
         }
@@ -65,16 +57,11 @@ public class GuavaCacheAESSafeProvider implements SafeProvider {
         if (safeFieldValue == null) {
             throw new IllegalArgumentException("The encryption field is null");
         }
-        byte[] bytes = Base64.getUrlDecoder().decode(safeFieldValue);
+        byte[] bytes = MyBase64.getUrlDecoder().decode(safeFieldValue);
         byte[] iv = Arrays.copyOf(bytes, 12);
         byte[] encryptedMsg = Arrays.copyOfRange(bytes, 12, bytes.length);
-        String cipherKey = sessionId + ":" + CIPHER_FIELD;
-        Map<String, String> cipherMap = (Map<String, String>) GuavaCache.CLIENT_CACHE.getIfPresent(cipherKey);
-        if (cipherMap == null) {
-            throw BaseBPError.ENCRYPTION_KEY.getInfo().initialize();
-        }
-        byte[] cipher = Base64.getDecoder().decode(cipherMap.get(CIPHER_FIELD));
-        byte[] decryptedMsg = AESUtil.AES_256_GCM_NoPadding.decryptByAESKey(cipher, iv, encryptedMsg);
+        byte[] cipherBytes = secretKeyProvider.getSecretKey(sessionId + ":" + CIPHER_FIELD, false);
+        byte[] decryptedMsg = AESUtil.AES_256_GCM_NoPadding.decryptByAESKey(cipherBytes, iv, encryptedMsg);
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> params = new ObjectMapper().readValue(decryptedMsg, Map.class);

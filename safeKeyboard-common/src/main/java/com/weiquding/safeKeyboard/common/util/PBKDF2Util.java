@@ -46,7 +46,7 @@ public class PBKDF2Util {
     }
 
     public static void main(String[] args) {
-        System.out.println(PBKDF2Util.hashingPassword("901823", Base64.getDecoder().decode("Kxi1PnJd8JqcOKoX3fv/aQ==")));
+        System.out.println(PBKDF2Util.hashingPassword("901823", MyBase64.getDecoder().decode("Kxi1PnJd8JqcOKoX3fv/aQ==")));
     }
 
 }

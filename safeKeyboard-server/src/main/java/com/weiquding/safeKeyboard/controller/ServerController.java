@@ -46,15 +46,15 @@ public class ServerController {
             @RequestHeader String sessionId,
             @RequestBody GenerateRnsReq generateRnsReq
     ) {
-        byte[] rncAndPMSBytes = RSAUtil.decryptByRSAPrivateKey(KeyInstance.RSA_PRIVATE_KEY, Base64.getDecoder().decode(generateRnsReq.getRnc()));
+        byte[] rncAndPMSBytes = RSAUtil.decryptByRSAPrivateKey(KeyInstance.RSA_PRIVATE_KEY, MyBase64.getDecoder().decode(generateRnsReq.getRnc()));
         byte[] rnc = new byte[32];
         byte[] pms = new byte[48];
         System.arraycopy(rncAndPMSBytes, 0, rnc, 0, rnc.length);
         System.arraycopy(rncAndPMSBytes, rnc.length, pms, 0, pms.length);
         RandomUtil.RNSAndSign rnsAndSign = RandomUtil.generateRNSAndSign();
         RandomUtil.RNCAndPMS rncAndPMS = new RandomUtil.RNCAndPMS(
-                Base64.getEncoder().encodeToString(rnc),
-                Base64.getEncoder().encodeToString(pms),
+                MyBase64.getEncoder().encodeToString(rnc),
+                MyBase64.getEncoder().encodeToString(pms),
                 rnsAndSign.getRns(),
                 null
         );
@@ -72,7 +72,7 @@ public class ServerController {
         RandomUtil.RNCAndPMS rncAndPMS = (RandomUtil.RNCAndPMS) GuavaCache.SERVER_CACHE.getIfPresent(sessionId);
         byte[][] keyBlock = PRFUtil.generateKeyBlock(rncAndPMS.getPms(), rncAndPMS.getRnc(), rncAndPMS.getRns());
         // 切分iv[12] + cipherText[?] + macSign[32]
-        byte[] base64DecodeBytes = Base64.getDecoder().decode(password);
+        byte[] base64DecodeBytes = MyBase64.getDecoder().decode(password);
         byte[] iv = keyBlock[4];
         byte[] macDigest = new byte[32];
         byte[] cipherText = new byte[base64DecodeBytes.length - macDigest.length];

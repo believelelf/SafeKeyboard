@@ -40,9 +40,9 @@ public class RandomUtil {
         System.arraycopy(PMS, 0, seed, RNC.length, PMS.length);
         byte[] bytes = RSAUtil.encryptByRSAPublicKey(KeyInstance.RSA_PUBLIC_KEY, seed);
         return new RNCAndPMS(
-                Base64.getEncoder().encodeToString(RNC),
-                Base64.getEncoder().encodeToString(PMS),
-                Base64.getEncoder().encodeToString(bytes)
+                MyBase64.getEncoder().encodeToString(RNC),
+                MyBase64.getEncoder().encodeToString(PMS),
+                MyBase64.getEncoder().encodeToString(bytes)
         );
     }
 
@@ -77,11 +77,11 @@ public class RandomUtil {
      */
     public static RNSAndSign generateRNSAndSign() {
         byte[] seed = RandomUtil.generateRandomBytes(32);
-        byte[] base64 = Base64.getEncoder().encode(seed);
+        byte[] base64 = MyBase64.getEncoder().encode(seed);
         byte[] sign = RSAUtil.signByRSAPrivateKey(KeyInstance.RSA_PRIVATE_KEY, base64);
         return new RNSAndSign(
                 new String(base64),
-                Base64.getEncoder().encodeToString(sign)
+                MyBase64.getEncoder().encodeToString(sign)
         );
     }
 

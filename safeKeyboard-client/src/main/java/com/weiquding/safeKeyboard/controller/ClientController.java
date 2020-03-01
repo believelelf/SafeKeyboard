@@ -68,7 +68,7 @@ public class ClientController {
         );
         String rns = result.getData().getRns();
         String sign = result.getData().getSign();
-        boolean verify = RSAUtil.verifySignByRSAPublicKey(KeyInstance.RSA_PUBLIC_KEY, rns.getBytes(), Base64.getDecoder().decode(sign));
+        boolean verify = RSAUtil.verifySignByRSAPublicKey(KeyInstance.RSA_PUBLIC_KEY, rns.getBytes(), MyBase64.getDecoder().decode(sign));
         if (!verify) {
             throw BaseBPError.SIGNATURE_CORRUPTED.getInfo().initialize();
         }
@@ -118,7 +118,7 @@ public class ClientController {
         System.arraycopy(encryptedPwd, 0, cipherText, 0, encryptedPwd.length);
         System.arraycopy(macDigest, 0, cipherText, encryptedPwd.length, macDigest.length);
 
-        String encryptedPwdString = Base64.getEncoder().encodeToString(cipherText);
+        String encryptedPwdString = MyBase64.getEncoder().encodeToString(cipherText);
         return Result.success(new GetEncryptedPasswordRsp(URLEncoder.encode(encryptedPwdString, StandardCharsets.UTF_8)));
     }
 
@@ -147,7 +147,7 @@ public class ClientController {
      *
      * @param sessionId 会话Id
      */
-    @EncryptSafeFields(fields = {"account", "toAccount", "tranAmount"})
+    @EncryptSafeFields(fields = {"account", "toAccount", "tranAmount"},clean = true)
     @RequestMapping("/confirm")
     public Result<ConfirmRsp> confirm(
             @RequestHeader String sessionId

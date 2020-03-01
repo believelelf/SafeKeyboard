@@ -76,9 +76,9 @@ import java.util.Objects;
  * @since   1.8
  */
 
-public class Base64 {
+public class MyBase64 {
 
-    private Base64() {}
+    private MyBase64() {}
 
     /**
      * Returns a {@link Encoder} that encodes using the

@@ -128,9 +128,9 @@ public class PRFUtil {
      * @return
      */
     public static byte[][] generateKeyBlock(String PMS, String RNC, String RNS) {
-        byte[] RNCBytes = Base64.getDecoder().decode(RNC);
-        byte[] RNSBytes = Base64.getDecoder().decode(RNS);
-        byte[] MS = generateMasterSecret(Base64.getDecoder().decode(PMS), RNCBytes, RNSBytes);
+        byte[] RNCBytes = MyBase64.getDecoder().decode(RNC);
+        byte[] RNSBytes = MyBase64.getDecoder().decode(RNS);
+        byte[] MS = generateMasterSecret(MyBase64.getDecoder().decode(PMS), RNCBytes, RNSBytes);
         return generateKeyBlock(MS, RNCBytes, RNSBytes);
     }
 
