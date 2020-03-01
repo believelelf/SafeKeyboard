@@ -3,6 +3,7 @@ package com.weiquding.safeKeyboard.controller;
 import com.weiquding.safeKeyboard.cache.JvmKeyCache;
 import com.weiquding.safeKeyboard.common.annotation.DecryptAndVerifySign;
 import com.weiquding.safeKeyboard.common.annotation.EncryptAndSignature;
+import com.weiquding.safeKeyboard.common.annotation.VerifyMessageDigest;
 import com.weiquding.safeKeyboard.common.cache.GuavaCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
 import com.weiquding.safeKeyboard.common.dto.*;
@@ -41,6 +42,13 @@ public class ServerController {
     @Autowired
     private UserMock userMock;
 
+    /**
+     * 测试生成随机数
+     *
+     * @param sessionId
+     * @param generateRnsReq
+     * @return
+     */
     @PostMapping(value = "/generateRNS")
     public Result<GenerateRnsRsp> generateRNC(
             @RequestHeader String sessionId,
@@ -62,6 +70,12 @@ public class ServerController {
         return Result.success(new GenerateRnsRsp(rnsAndSign.getRns(), rnsAndSign.getSign()));
     }
 
+    /***
+     * 测试提交密码密文
+     * @param sessionId
+     * @param req
+     * @return
+     */
     @PostMapping(value = "/submitEncryptedPassword")
     public Result<SubmitEncryptedPasswordRsp> submitEncryptedPassword(
             @RequestHeader String sessionId,
@@ -102,13 +116,35 @@ public class ServerController {
         return Result.success(new SubmitEncryptedPasswordRsp(result));
     }
 
+    /**
+     * 测试报文加解密
+     *
+     * @param req
+     * @return
+     */
     @DecryptAndVerifySign
     @EncryptAndSignature
-    @RequestMapping("/secureMessage")
-    public Result<EncryptAndSignatureDto> secureMessage(@RequestBody EncryptAndSignatureDto encryptedData) {
-        Map<String, Object> data = new HashMap<>();
-        data.put(SecureUtil.APPID_KEY, JvmKeyCache.TEST_APP_ID);
+    @PostMapping("/secureMessage")
+    public Result<EncryptAndSignatureDto> secureMessage(@RequestBody EncryptAndSignatureDto req) {
+        Map<String, Object> data = new HashMap<>(2);
+        data.put(Constants.APPID_KEY, JvmKeyCache.TEST_APP_ID);
         data.put("className", this.getClass().getName());
         return Result.success(new EncryptAndSignatureDto<Map<String, Object>>(JvmKeyCache.TEST_APP_ID, data));
+    }
+
+    /**
+     * 测试报文摘要
+     *
+     * @return
+     */
+    @VerifyMessageDigest
+    @PostMapping(value = "/digestMessage",
+            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Result<Map<String, Object>> digestMessage(@RequestParam Map<String, Object> req) {
+        Map<String, Object> data = new HashMap<>(2);
+        data.put(Constants.APPID_KEY, JvmKeyCache.TEST_APP_ID);
+        data.put("className", this.getClass().getName());
+        return Result.success(data);
     }
 }

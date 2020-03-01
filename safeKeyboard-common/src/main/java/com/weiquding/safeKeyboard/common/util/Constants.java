@@ -17,4 +17,6 @@ public class Constants {
 
     public static final String TRACE_NO = "x-traceNo";
 
+    public static final String APPID_KEY = "appId";
+
 }

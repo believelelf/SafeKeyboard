@@ -125,8 +125,8 @@ public class RestTemplateConfiguration {
                 .setRedirectStrategy(LaxRedirectStrategy.INSTANCE)
                 .evictExpiredConnections()
                 .evictIdleConnections(MAX_IDLE_TIME, TimeUnit.SECONDS)
+                .useSystemProperties()
                 .build();
-
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(client);
         restTemplate.setRequestFactory(factory);
         return restTemplate;

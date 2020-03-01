@@ -1,10 +1,12 @@
 package com.weiquding.safeKeyboard.common.util;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.util.Assert;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -73,10 +75,14 @@ public class ReflectUtil {
             return map.get(field);
         }
         PropertyDescriptor propertyDescriptor = BeanUtils.getPropertyDescriptor(data.getClass(), field);
+        return getFieldValue(data, propertyDescriptor);
+    }
+
+    private static Object getFieldValue(Object data, PropertyDescriptor propertyDescriptor) {
         if (propertyDescriptor != null) {
             Method readMethod = propertyDescriptor.getReadMethod();
             if (readMethod == null) {
-                throw new IllegalStateException(String.format("ReadMethod [%s] must not be null", field));
+                throw new IllegalStateException(String.format("ReadMethod [%s] must not be null", propertyDescriptor.getDisplayName()));
             }
             try {
                 return readMethod.invoke(data);
@@ -85,5 +91,21 @@ public class ReflectUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * 将JavaBean转换为Map
+     *
+     * @param data JavaBean
+     * @return Map
+     */
+    public static Map<String, Object> bean2Map(Object data) {
+        Assert.notNull(data, "Data must not be null");
+        Map<String, Object> params = new HashMap<>();
+        PropertyDescriptor[] propertyDescriptors = BeanUtils.getPropertyDescriptors(data.getClass());
+        for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+            params.put(propertyDescriptor.getName(), getFieldValue(data, propertyDescriptor));
+        }
+        return params;
     }
 }

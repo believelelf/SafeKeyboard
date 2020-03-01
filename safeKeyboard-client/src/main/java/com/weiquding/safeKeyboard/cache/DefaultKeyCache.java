@@ -43,4 +43,15 @@ public class DefaultKeyCache implements KeyCache {
     public PublicKey getPublicKeyByAppId(String appId) {
         return SERVER_RSA_PUBLIC_KEY;
     }
+
+    /**
+     * FIXME believeyourself@outlook.com
+     * 采用客户端配置方式，后续优化通过接口从服务端获取
+     * @param appId 客户端标识
+     * @return 应用密钥
+     */
+    @Override
+    public String getAppSecret(String appId) {
+        return properties.getAppSecret();
+    }
 }

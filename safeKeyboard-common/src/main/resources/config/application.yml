@@ -9,6 +9,7 @@ cipher:
   storePass: weiquding
   keyPass: weiquding
   slat: Kxi1PnJd8JqcOKoX3fv/aQ==
+  appSecret: NsVmnmNinzQtO83xni00ZG6mLsbINzctnjJhNsA0njU2NW3I
 debug: true
 #
 # {@link org.springframework.core.io.ResourceLoader#getResource()}

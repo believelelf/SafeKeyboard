@@ -45,6 +45,7 @@ public enum BaseBPError {
     KEYSTORE_INSTANCE("BASEBP0031", "An error occurred while obtaining an instance of keystore"),
     GETTING_CIPHERINPUTSTREAM("BASEBP0032", "An error occurred while getting CipherInputStream"),
     GETTING_CIPHEROUTPUTSTREAM("BASEBP0033", "An error occurred while getting CipherOutputStream"),
+    DATA_DIGEST("BASEBP0034", "Data digest do not match"),
 
     ;
 

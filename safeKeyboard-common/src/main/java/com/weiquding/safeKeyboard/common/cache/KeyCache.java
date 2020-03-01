@@ -4,6 +4,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 
 /**
+ *
  * 根据客户端标识查找与其对应的公私钥
  *
  * @author beliveyourself
@@ -27,5 +28,12 @@ public interface KeyCache {
      * @return 公钥
      */
     PublicKey getPublicKeyByAppId(String appId);
+
+    /**
+     * 根据客户端标识查询其应用密钥
+     * @param appId 客户端标识
+     * @return 应用密钥
+     */
+    String getAppSecret(String appId);
 
 }

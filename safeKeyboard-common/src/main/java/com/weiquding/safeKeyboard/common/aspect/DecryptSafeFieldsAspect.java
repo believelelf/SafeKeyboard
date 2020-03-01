@@ -34,7 +34,7 @@ public class DecryptSafeFieldsAspect implements ApplicationContextAware {
 
     @Pointcut("(@within(org.springframework.web.bind.annotation.RestController) || @within(org.springframework.stereotype.Controller))"
             + "&& @annotation(com.weiquding.safeKeyboard.common.annotation.DecryptSafeFields)"
-            + "&& execution(public com.weiquding.safeKeyboard.common.format.Result com.weiquding.safeKeyboard..*.*(..))"
+            + "&& execution(public com.weiquding.safeKeyboard.common.format.Result *.*(..))"
     )
     public void decryptSafeFieldsPointcut() {
     }

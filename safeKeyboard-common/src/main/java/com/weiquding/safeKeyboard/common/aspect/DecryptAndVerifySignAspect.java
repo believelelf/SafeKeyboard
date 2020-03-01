@@ -31,17 +31,17 @@ public class DecryptAndVerifySignAspect {
     @SuppressWarnings("unchecked")
     @Before(value =
             "@annotation(com.weiquding.safeKeyboard.common.annotation.DecryptAndVerifySign) "
-                    + "&& execution(public * com.weiquding.safeKeyboard..*.*(..,com.weiquding.safeKeyboard.common.dto.EncryptAndSignatureDto))"
-                    + "&& args(.., encryptedData)"
+                    + "&& execution(public * *.*(..,com.weiquding.safeKeyboard.common.dto.EncryptAndSignatureDto))"
+                    + "&& args(.., req)"
     )
-    public void decryptAndVerifySign(EncryptAndSignatureDto encryptedData) {
-        log.info("解密前参数：[{}]", encryptedData);
-        String appId = encryptedData.getAppId();
+    public void decryptAndVerifySign(EncryptAndSignatureDto req) {
+        log.debug("解密前参数：[{}]", req);
+        String appId = req.getAppId();
         PrivateKey privateKey = keyCache.getPrivateKeyByAppId(appId);
         PublicKey publicKey = keyCache.getPublicKeyByAppId(appId);
-        Map<String, Object> result = SecureUtil.decryptAndVerifySign(privateKey, publicKey, encryptedData, Map.class);
-        log.info("解密完成参数：[{}]", result);
-        encryptedData.setPlainData(result);
+        Map<String, Object> result = SecureUtil.decryptAndVerifySign(privateKey, publicKey, req, Map.class);
+        log.debug("解密完成参数：[{}]", result);
+        req.setPlainData(result);
     }
 
 }

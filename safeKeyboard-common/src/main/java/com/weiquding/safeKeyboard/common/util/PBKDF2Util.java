@@ -7,6 +7,7 @@ import org.apache.commons.codec.binary.Hex;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import java.security.spec.KeySpec;
+import java.util.UUID;
 
 /**
  * PBKDF2 算法工具类
@@ -47,6 +48,7 @@ public class PBKDF2Util {
 
     public static void main(String[] args) {
         System.out.println(PBKDF2Util.hashingPassword("901823", MyBase64.getDecoder().decode("Kxi1PnJd8JqcOKoX3fv/aQ==")));
+        System.out.println(MyBase64.getEncoder().encodeToString(UUID.randomUUID().toString().getBytes()));
     }
 
 }

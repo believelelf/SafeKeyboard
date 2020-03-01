@@ -1,5 +1,6 @@
 package com.weiquding.safeKeyboard.controller;
 
+import com.google.common.reflect.TypeToken;
 import com.weiquding.safeKeyboard.common.annotation.DecryptSafeFields;
 import com.weiquding.safeKeyboard.common.annotation.EncryptSafeFields;
 import com.weiquding.safeKeyboard.common.cache.GuavaCache;
@@ -8,6 +9,7 @@ import com.weiquding.safeKeyboard.common.cache.KeyInstance;
 import com.weiquding.safeKeyboard.common.dto.*;
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import com.weiquding.safeKeyboard.common.format.HttpTransport;
+import com.weiquding.safeKeyboard.common.format.ParameterizedTypeReferenceBuilder;
 import com.weiquding.safeKeyboard.common.format.Result;
 import com.weiquding.safeKeyboard.common.format.ServiceType;
 import com.weiquding.safeKeyboard.common.util.*;
@@ -18,6 +20,9 @@ import com.weiquding.safeKeyboard.dto.SubmitRsp;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -28,9 +33,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 模拟获取密钥与密文
@@ -50,6 +53,9 @@ public class ClientController {
 
     @Resource
     private KeyCache keyCache;
+
+    @Value("${application.appId:test_app_id}")
+    private String appId;
 
     /**
      * 生成随机数
@@ -147,7 +153,7 @@ public class ClientController {
      *
      * @param sessionId 会话Id
      */
-    @EncryptSafeFields(fields = {"account", "toAccount", "tranAmount"},clean = true)
+    @EncryptSafeFields(fields = {"account", "toAccount", "tranAmount"}, clean = true)
     @RequestMapping("/confirm")
     public Result<ConfirmRsp> confirm(
             @RequestHeader String sessionId
@@ -167,25 +173,29 @@ public class ClientController {
             @RequestHeader String sessionId,
             @RequestBody SubmitReq submitReq
     ) {
-        log.info("submit execute...,args:[{}]", submitReq);
+        log.debug("submit execute...,args:[{}]", submitReq);
         return Result.success(new SubmitRsp(submitReq));
     }
 
+    /**
+     * 测试报文加密传输
+     *
+     * @return 返回数据
+     */
     @SuppressWarnings("unchecked")
     @RequestMapping("/secureMessage")
     public Result<Map<String, Object>> secureMessage() {
 
-        String appId = "test_app_id";
         PrivateKey privateKey = keyCache.getPrivateKeyByAppId(appId);
         PublicKey publicKey = keyCache.getPublicKeyByAppId(appId);
 
         Map<String, Object> params = new HashMap<>();
-        params.put(SecureUtil.APPID_KEY, appId);
+        params.put(Constants.APPID_KEY, appId);
         params.put("className", this.getClass().getName());
-        log.info("加密前数据：[{}]", params);
+        log.debug("加密前数据：[{}]", params);
 
         EncryptAndSignatureDto encryptedData = SecureUtil.encryptAndSignature(privateKey, publicKey, appId, params);
-        log.info("加密后数据：[{}]", encryptedData);
+        log.debug("加密后数据：[{}]", encryptedData);
 
         Result<EncryptAndSignatureDto> retVal = httpTransport.postForObject(
                 ServiceType.SKBS0001,
@@ -193,12 +203,50 @@ public class ClientController {
                 encryptedData,
                 EncryptAndSignatureDto.class);
 
-        log.info("解密前数据：[{}]", retVal);
+        log.debug("解密前数据：[{}]", retVal);
 
         Map<String, Object> decryptedData = SecureUtil.decryptAndVerifySign(privateKey, publicKey, retVal.getData(), Map.class);
-        log.info("解密后数据：[{}]", decryptedData);
+        log.debug("解密后数据：[{}]", decryptedData);
 
         return Result.success(decryptedData);
+    }
+
+    /**
+     * 测试报文摘要
+     *
+     * @return 返回数据
+     */
+    @RequestMapping("/digestMessage")
+    public Result<Map<String, Object>> digestMessage() {
+
+        List<String> emailList = new ArrayList<>(2);
+        emailList.add("believeyourself@outlook.com");
+        emailList.add("xxx@qq.com");
+
+        Map<String, Object> params = AppSecretUtil.getParams(
+                keyCache.getAppSecret(appId),
+                new Object[]{
+                        Constants.APPID_KEY, appId,
+                        "name", "believeyourself",
+                        "email", emailList,
+                        "address", new String[]{"xi'an", "shanghai"}
+                }
+        );
+
+        Result<Map<String, Object>> retVal = httpTransport.postForObject(
+                ServiceType.SKBS0001,
+                "/skbs/digestMessage",
+                httpTransport.map2MultiValueMap(params),
+                ParameterizedTypeReferenceBuilder.fromTypeToken(
+                        ParameterizedTypeReferenceBuilder.mapToken(
+                                TypeToken.of(String.class),
+                                TypeToken.of(Object.class)
+                        )
+                ),
+                HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE
+        );
+        log.debug("服务端返回数据==>{}", retVal);
+        return retVal;
     }
 
 }

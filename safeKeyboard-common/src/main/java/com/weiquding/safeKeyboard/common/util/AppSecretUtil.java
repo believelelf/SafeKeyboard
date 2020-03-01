@@ -7,7 +7,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.Base64;
 
 /**
  * 消息摘要方法
@@ -22,6 +21,8 @@ public class AppSecretUtil {
     private static final String TIMESTAMP = "timestamp";
 
     private static final String VERSION = "version";
+
+    private static final String SIGN = "sign";
 
     /**
      * 第一步，设所有发送或者接收到的数据为集合M，将集合M内非空参数值的参数按照参数名ASCII码从小到大排序（字典序），使用URL键值对的格式（即key1=value1&key2=value2…）拼接成字符串stringA。
@@ -39,6 +40,18 @@ public class AppSecretUtil {
      * @return 签名后参数
      */
     public static Map<String, Object> getParams(String appSecret, Object[] kvs) {
+        TreeMap<String, Object> map = expatParams(kvs);
+        //  增加随机量
+        map.put(TIMESTAMP, new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+        if (!map.containsKey(VERSION)) {
+            map.put(VERSION, "1.0");
+        }
+        String sign = generateSign(appSecret, map, true);
+        map.put(SIGN, sign);
+        return map;
+    }
+
+    private static TreeMap<String, Object> expatParams(Object[] kvs) {
         if (kvs == null || kvs.length % 2 != 0) {
             throw new IllegalArgumentException("Illegal Argument: " + Arrays.toString(kvs));
         }
@@ -50,6 +63,10 @@ public class AppSecretUtil {
                 if (value == null) {
                     continue;
                 }
+                if (value instanceof Iterable) {
+                    Iterable<?> iterable = ((Iterable<?>) value);
+                    value = iterable.iterator();
+                }
                 if (value instanceof Iterator) {
                     Iterator<?> it = ((Iterator<?>) value);
                     int index = 0;
@@ -60,9 +77,9 @@ public class AppSecretUtil {
                     }
                 } else if (value.getClass().isArray()) {
                     Object[] arr = (Object[]) value;
-                    for (int index = 0; index < arr.length; index += 2) {
-                        Object obj = arr[i];
-                        map.put(key + "[" + i + "]", obj);
+                    for (int index = 0; index < arr.length; index++) {
+                        Object obj = arr[index];
+                        map.put(key + "[" + index + "]", obj);
                     }
                 } else {
                     map.put(key, value);
@@ -71,13 +88,10 @@ public class AppSecretUtil {
         } catch (Exception e) {
             throw BaseBPError.ORGANIZE_PARAMETERS.getInfo().initialize(e);
         }
+        return map;
+    }
 
-        //  增加随机量
-        map.put(TIMESTAMP, new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
-        if (!map.containsKey(VERSION)) {
-            map.put(VERSION, "1.0");
-        }
-
+    private static String generateSign(String appSecret, TreeMap<String, Object> map, boolean isURLEncoding) {
         // 生成URL键值对
         StringBuilder builder = new StringBuilder();
         Iterator<Map.Entry<String, Object>> it = map.entrySet().iterator();
@@ -86,8 +100,11 @@ public class AppSecretUtil {
                 Map.Entry<String, Object> entry = it.next();
                 Object value = entry.getValue();
                 if (value != null) {
-                    entry.setValue(URLEncoder.encode(value.toString(), StandardCharsets.UTF_8));
-                    builder.append('&').append(entry.getKey()).append('=').append(value);
+                    String valueStr = isURLEncoding ?
+                            URLEncoder.encode(value.toString(), StandardCharsets.UTF_8)
+                            : value.toString();
+                    entry.setValue(valueStr);
+                    builder.append('&').append(entry.getKey()).append('=').append(valueStr);
                 }
             }
         } catch (Exception e) {
@@ -97,10 +114,44 @@ public class AppSecretUtil {
         // 生成摘要值
         String stringSignTemp = builder.append("&key=").append(appSecret).toString().substring(1);
         byte[] md5Value = MD5Util.md5(stringSignTemp.getBytes(StandardCharsets.UTF_8));
-        String sign = Base64.getUrlEncoder().encodeToString(md5Value);
-        map.put("sign", sign);
-        return map;
+        return Base64.getUrlEncoder().encodeToString(md5Value);
     }
 
+    /**
+     * 验证消息摘要
+     *
+     * @param appSecret 密钥
+     * @param data      待验证参数
+     */
+    @SuppressWarnings("unchecked")
+    public static void verifyMessageDigest(String appSecret, Object data) {
+        TreeMap<String, Object> params = expatParams(convertKvs(data));
+        String sign = generateSign(appSecret, params, false);
+        String originSign = (String) ReflectUtil.getFieldValue(data, SIGN);
+        if (!sign.equals(originSign)) {
+            throw BaseBPError.DATA_DIGEST.getInfo().initialize();
+        }
 
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Object[] convertKvs(Object data) {
+        Map<String, Object> params = null;
+        if (data instanceof Map) {
+            params = (Map<String, Object>) data;
+        } else {
+            params = ReflectUtil.bean2Map(data);
+        }
+        Object[] kvs = new Object[(params.size() - 1) * 2];
+        int index = 0;
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            String key = entry.getKey();
+            if (SIGN.equals(key)) {
+                continue;
+            }
+            kvs[index++] = key;
+            kvs[index++] = entry.getValue();
+        }
+        return kvs;
+    }
 }

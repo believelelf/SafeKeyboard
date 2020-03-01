@@ -61,6 +61,10 @@ public class CipherPathProperties {
      */
     private String slat;
 
+    /**
+     * 应用密钥
+     */
+    private String appSecret;
 
 
 }

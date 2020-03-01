@@ -23,14 +23,6 @@ import java.util.Arrays;
 @Slf4j
 public class SecureUtil {
 
-    public static final String APPID_KEY = "appId";
-
-    public static final String SIGNATURE = "signature";
-
-    public static final String ENCRYPTED_KEY = "encryptedKey";
-
-    public static final String ENCRYPTED_DATA = "encryptedData";
-
 
     /**
      * AES对称加密数据，RSA非对称加密AES密钥，SHA256withRSA签名数据
@@ -48,7 +40,7 @@ public class SecureUtil {
 
         // 产生AES对称密钥
         byte[] secretKey = AESUtil.AES_256_CBC_PKCS5Padding.initAESKey();
-        log.info("产生AES对称密钥[{}]", Arrays.toString(secretKey));
+        log.debug("产生AES对称密钥[{}]", Arrays.toString(secretKey));
         // AES对称加密数据
         byte[] data = null;
         try {
@@ -95,7 +87,7 @@ public class SecureUtil {
 
         // 本方RSA私钥解密AES密钥
         byte[] secretKey = RSAUtil.decryptByRSAPrivateKey((RSAPrivateKey) privateKey, MyBase64.getUrlDecoder().decode(encryptedKey));
-        log.info("本方RSA私钥解密AES密钥[{}]", Arrays.toString(secretKey));
+        log.debug("本方RSA私钥解密AES密钥[{}]", Arrays.toString(secretKey));
 
         // AES对称解密数据
         byte[] data = AESUtil.AES_256_CBC_PKCS5Padding.decryptByAESKey(secretKey, MyBase64.getUrlDecoder().decode(encryptedData));
