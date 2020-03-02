@@ -35,18 +35,19 @@ public class AppSecretUtil {
      * sign=MD5(stringSignTemp).toUpperCase()="9A0A8659F005D6984697E2CA0A9CF3B7" //注：MD5签名方式
      * sign=hash_hmac("sha256",stringSignTemp,key).toUpperCase()="6A9AE1657590FD6257D693A078E1C3E4BB6BA4DC30B23E0EE2496E54170DACD6" //注：HMAC-SHA256签名方式
      *
-     * @param appSecret 密钥
-     * @param kvs       键值对
+     * @param appSecret       密钥
+     * @param kvs             键值对
+     * @param needUrlEncoding 是否需要对参数进行URLEncoding
      * @return 签名后参数
      */
-    public static Map<String, Object> getParams(String appSecret, Object[] kvs) {
+    public static Map<String, Object> getParams(String appSecret, boolean needUrlEncoding, Object[] kvs) {
         TreeMap<String, Object> map = expatParams(kvs);
         //  增加随机量
         map.put(TIMESTAMP, new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
         if (!map.containsKey(VERSION)) {
             map.put(VERSION, "1.0");
         }
-        String sign = generateSign(appSecret, map, true);
+        String sign = generateSign(appSecret, map, needUrlEncoding);
         map.put(SIGN, sign);
         return map;
     }
@@ -91,7 +92,7 @@ public class AppSecretUtil {
         return map;
     }
 
-    private static String generateSign(String appSecret, TreeMap<String, Object> map, boolean isURLEncoding) {
+    private static String generateSign(String appSecret, TreeMap<String, Object> map, boolean needUrlEncoding) {
         // 生成URL键值对
         StringBuilder builder = new StringBuilder();
         Iterator<Map.Entry<String, Object>> it = map.entrySet().iterator();
@@ -100,7 +101,7 @@ public class AppSecretUtil {
                 Map.Entry<String, Object> entry = it.next();
                 Object value = entry.getValue();
                 if (value != null) {
-                    String valueStr = isURLEncoding ?
+                    String valueStr = needUrlEncoding ?
                             URLEncoder.encode(value.toString(), StandardCharsets.UTF_8)
                             : value.toString();
                     entry.setValue(valueStr);
@@ -120,13 +121,14 @@ public class AppSecretUtil {
     /**
      * 验证消息摘要
      *
-     * @param appSecret 密钥
-     * @param data      待验证参数
+     * @param appSecret       密钥
+     * @param data            待验证参数
+     * @param needUrlEncoding 是否需要UrlEncoding
      */
     @SuppressWarnings("unchecked")
-    public static void verifyMessageDigest(String appSecret, Object data) {
+    public static void verifyMessageDigest(String appSecret, Object data, boolean needUrlEncoding) {
         TreeMap<String, Object> params = expatParams(convertKvs(data));
-        String sign = generateSign(appSecret, params, false);
+        String sign = generateSign(appSecret, params, needUrlEncoding);
         String originSign = (String) ReflectUtil.getFieldValue(data, SIGN);
         if (!sign.equals(originSign)) {
             throw BaseBPError.DATA_DIGEST.getInfo().initialize();

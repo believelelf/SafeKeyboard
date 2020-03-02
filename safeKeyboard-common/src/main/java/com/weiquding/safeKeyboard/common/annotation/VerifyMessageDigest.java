@@ -13,4 +13,10 @@ import java.lang.annotation.*;
 @Target(ElementType.METHOD)
 @Documented
 public @interface VerifyMessageDigest {
+
+    /**
+     * 是否需要对参数进行URL
+     * @return 默认为false
+     */
+    boolean needUrlEncoding() default false;
 }
