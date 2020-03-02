@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class SafeKeyboardClientApplication {
 
     public static void main(String[] args) {
+        System.setProperty("java.net.useSystemProxies", "true");
         SpringApplication.run(SafeKeyboardClientApplication.class, args);
     }
 

@@ -22,6 +22,7 @@ public class SafeKeyboardServerApplication {
     Environment environment;
 
     public static void main(String[] args) {
+        System.setProperty("java.net.useSystemProxies", "true");
         SpringApplication.run(SafeKeyboardServerApplication.class, args);
     }
 

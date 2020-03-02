@@ -225,6 +225,7 @@ public class ClientController {
 
         Map<String, Object> params = AppSecretUtil.getParams(
                 keyCache.getAppSecret(appId),
+                false,
                 new Object[]{
                         Constants.APPID_KEY, appId,
                         "name", "believeyourself",
