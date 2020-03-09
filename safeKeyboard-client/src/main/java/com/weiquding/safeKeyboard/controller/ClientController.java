@@ -6,6 +6,7 @@ import com.weiquding.safeKeyboard.common.annotation.EncryptSafeFields;
 import com.weiquding.safeKeyboard.common.cache.GuavaCache;
 import com.weiquding.safeKeyboard.common.cache.KeyCache;
 import com.weiquding.safeKeyboard.common.cache.KeyInstance;
+import com.weiquding.safeKeyboard.common.domain.CipherPathProperties;
 import com.weiquding.safeKeyboard.common.dto.*;
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import com.weiquding.safeKeyboard.common.format.HttpTransport;
@@ -23,12 +24,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import javax.crypto.Mac;
 import javax.validation.constraints.NotBlank;
+import java.io.File;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
@@ -56,6 +59,9 @@ public class ClientController {
 
     @Value("${application.appId:test_app_id}")
     private String appId;
+
+    @Autowired
+    private CipherPathProperties properties;
 
     /**
      * 生成随机数
@@ -245,6 +251,37 @@ public class ClientController {
                         )
                 ),
                 HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE
+        );
+        log.debug("服务端返回数据==>{}", retVal);
+        return retVal;
+    }
+
+    /**
+     * 测试加密文件上传
+     *
+     * @return 上传结果
+     */
+    @RequestMapping("/secureUploadFiles")
+    public Result<Map<String, Object>> secureUploadFiles() {
+        PrivateKey privateKey = keyCache.getPrivateKeyByAppId(appId);
+        PublicKey publicKey = keyCache.getPublicKeyByAppId(appId);
+
+        File file = new File(properties.getFileDir());
+        log.debug("待加密文件目录：[{}]", file);
+
+        MultiValueMap<String, Object> encryptedData = SecureUtil.encryptAndSignature(privateKey, publicKey, appId, file, appId + ".zip");
+
+        Result<Map<String, Object>> retVal = httpTransport.postForObject(
+                ServiceType.SKBS0001,
+                "/skbs/secureUploadFiles",
+                encryptedData,
+                ParameterizedTypeReferenceBuilder.fromTypeToken(
+                        ParameterizedTypeReferenceBuilder.mapToken(
+                                TypeToken.of(String.class),
+                                TypeToken.of(Object.class)
+                        )
+                ),
+                HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA_VALUE
         );
         log.debug("服务端返回数据==>{}", retVal);
         return retVal;

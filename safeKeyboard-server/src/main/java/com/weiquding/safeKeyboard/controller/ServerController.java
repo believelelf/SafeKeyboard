@@ -147,4 +147,21 @@ public class ServerController {
         data.put("className", this.getClass().getName());
         return Result.success(data);
     }
+
+
+    /**
+     * 测试文件加密上传
+     *
+     * @return 文件加密测试结果
+     */
+    @PostMapping(value = "/secureUploadFiles",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public Result<Map<String, Object>> secureUploadFiles(@RequestParam Map<String, Object> req) {
+
+        Map<String, Object> data = new HashMap<>(2);
+        data.put(Constants.APPID_KEY, JvmKeyCache.TEST_APP_ID);
+        data.put("className", this.getClass().getName());
+        return Result.success(data);
+    }
 }

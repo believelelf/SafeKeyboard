@@ -4,8 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.weiquding.safeKeyboard.common.dto.EncryptAndSignatureDto;
 import com.weiquding.safeKeyboard.common.exception.BaseBPError;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.util.Assert;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -22,6 +26,23 @@ import java.util.Arrays;
  */
 @Slf4j
 public class SecureUtil {
+
+    /**
+     * 应用ID
+     */
+    public static final String APP_ID = "appId";
+    /**
+     * 数据签名
+     */
+    private static final String SIGNATURE = "signature";
+    /**
+     * 对称密钥密文
+     */
+    private static final String ENCRYPTED_KEY = "encryptedKey";
+    /**
+     * 数据密文
+     */
+    private static final String ENCRYPTED_DATA = "encryptedData";
 
 
     /**
@@ -62,6 +83,49 @@ public class SecureUtil {
                 MyBase64.getUrlEncoder().encodeToString(encryptedKey),
                 MyBase64.getUrlEncoder().encodeToString(encryptedData)
         );
+    }
+
+    /**
+     * AES对称加密数据，RSA非对称加密AES密钥，SHA256withRSA签名数据
+     *
+     * @param privateKey 本方RSA私钥
+     * @param publicKey  对方RSA公钥
+     * @param appId      应用ID
+     * @param originFile 源文件
+     * @param fileName   加密后文件名
+     * @return 加密及签名结果
+     */
+    public static MultiValueMap<String, Object> encryptAndSignature(PrivateKey privateKey, PublicKey publicKey, String appId, File originFile, String fileName) {
+        checkPreConditions(privateKey, publicKey, originFile);
+
+        Assert.notNull(appId, "appId must not be empty");
+        Assert.notNull(fileName, "fileName must not be empty");
+
+        // 产生AES对称密钥
+        byte[] secretKey = AESUtil.AES_256_CBC_PKCS5Padding.initAESKey();
+        log.debug("产生AES对称密钥[{}]", Arrays.toString(secretKey));
+        // AES对称加密数据
+        byte[] data = ZipUtil.archive(originFile);
+        byte[] encryptedData = AESUtil.AES_256_CBC_PKCS5Padding.encryptByAESKey(secretKey, data);
+
+        // 对方RSA公钥对AES密钥进行非对称加密
+        byte[] encryptedKey = RSAUtil.encryptByRSAPublicKey((RSAPublicKey) publicKey, secretKey);
+
+        // 本方RSA私钥对数据进行签名
+        byte[] signature = RSAUtil.signByRSAPrivateKey((RSAPrivateKey) privateKey, data);
+
+        MultiValueMap<String, Object> multiValueMap = new LinkedMultiValueMap<>();
+        multiValueMap.add(APP_ID, appId);
+        multiValueMap.add(SIGNATURE, MyBase64.getUrlEncoder().encodeToString(signature));
+        multiValueMap.add(ENCRYPTED_KEY, MyBase64.getUrlEncoder().encodeToString(encryptedKey));
+        multiValueMap.add(ENCRYPTED_DATA, new ByteArrayResource(encryptedData) {
+            @Override
+            public String getFilename() {
+                return fileName;
+            }
+        });
+
+        return multiValueMap;
     }
 
     /**

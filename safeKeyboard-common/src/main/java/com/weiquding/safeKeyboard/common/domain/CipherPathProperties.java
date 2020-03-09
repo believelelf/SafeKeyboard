@@ -65,6 +65,10 @@ public class CipherPathProperties {
      * 应用密钥
      */
     private String appSecret;
+    /**
+     * 待加密文件目录
+     */
+    private String fileDir;
 
 
 }

@@ -10,6 +10,7 @@ cipher:
   keyPass: weiquding
   slat: Kxi1PnJd8JqcOKoX3fv/aQ==
   appSecret: NsVmnmNinzQtO83xni00ZG6mLsbINzctnjJhNsA0njU2NW3I
+  fileDir: E:\\Java\\idea_workspaces\\SafeKeyboard\\file
 debug: true
 #
 # {@link org.springframework.core.io.ResourceLoader#getResource()}
