@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -262,29 +264,57 @@ public class ClientController {
      * @return 上传结果
      */
     @RequestMapping("/secureUploadFiles")
-    public Result<Map<String, Object>> secureUploadFiles() {
+    public Result<List<ZipUtil.FileData>> secureUploadFiles() {
         PrivateKey privateKey = keyCache.getPrivateKeyByAppId(appId);
         PublicKey publicKey = keyCache.getPublicKeyByAppId(appId);
 
         File file = new File(properties.getFileDir());
         log.debug("待加密文件目录：[{}]", file);
 
-        MultiValueMap<String, Object> encryptedData = SecureUtil.encryptAndSignature(privateKey, publicKey, appId, file, appId + ".zip");
+        MultiValueMap<String, Object> encryptedData = SecureUtil.encryptAndSignature4File(privateKey, publicKey, appId, file, appId + ".zip");
 
-        Result<Map<String, Object>> retVal = httpTransport.postForObject(
+        Result<List<ZipUtil.FileData>> retVal = httpTransport.postForObject(
                 ServiceType.SKBS0001,
                 "/skbs/secureUploadFiles",
                 encryptedData,
                 ParameterizedTypeReferenceBuilder.fromTypeToken(
-                        ParameterizedTypeReferenceBuilder.mapToken(
-                                TypeToken.of(String.class),
-                                TypeToken.of(Object.class)
-                        )
+                        new TypeToken<List<ZipUtil.FileData>>() {
+                        }
                 ),
                 HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA_VALUE
         );
         log.debug("服务端返回数据==>{}", retVal);
         return retVal;
+    }
+
+    /**
+     * 测试加密文件下载，文件加密字节转为base64字符串后传输。
+     *
+     * @return 文件明文内容
+     */
+    @PostMapping("/secureDownloadFile")
+    public Result<String> secureDownloadFile() {
+        ResolvableType resolvableType = ResolvableType.forClassWithGenerics(EncryptAndSignatureDto.class, String.class, byte[].class);
+        ParameterizedTypeReference<EncryptAndSignatureDto<String, byte[]>> typeRef = ParameterizedTypeReference.forType(resolvableType.getType());
+
+        Result<EncryptAndSignatureDto<String, byte[]>> retVal = httpTransport.postForObject(
+                ServiceType.SKBS0001,
+                "/skbs/secureDownloadFile",
+                new SecureDownloadFileReq(appId, "file1.txt"),
+                typeRef
+        );
+        log.debug("服务端返回数据==>{}", retVal);
+
+        PrivateKey privateKey = keyCache.getPrivateKeyByAppId(appId);
+        PublicKey publicKey = keyCache.getPublicKeyByAppId(appId);
+
+        String base64Text = SecureUtil.decryptAndVerifySign(privateKey, publicKey, retVal.getData(), String.class);
+        log.debug("服务端返回数据,解密为Base64==>{}", base64Text);
+
+        String plainText = new String(Base64.getDecoder().decode(base64Text));
+        log.debug("服务端返回数据,解密为明文==>{}", plainText);
+
+        return Result.success(plainText);
     }
 
 }

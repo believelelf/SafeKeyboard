@@ -47,6 +47,9 @@ public enum BaseBPError {
     GETTING_CIPHEROUTPUTSTREAM("BASEBP0033", "An error occurred while getting CipherOutputStream"),
     DATA_DIGEST("BASEBP0034", "Data digest do not match"),
     COMPRESSING_ZIP("BASEBP0035", "An error occurred while compressing zip"),
+    UNZIP("BASEBP0036", "An error occurred while unzipping the zip package"),
+    ACCESS_ERRORS("BASEBP0037", "In case of access errors (if the temporary store fails)"),
+    READ_FILE("BASEBP0038", "An error occurred while retrieving the file contents"),
 
     ;
 

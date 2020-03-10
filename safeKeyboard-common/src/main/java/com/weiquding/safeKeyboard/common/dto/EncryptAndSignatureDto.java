@@ -10,7 +10,7 @@ import lombok.Data;
  * @date 2020/2/29
  */
 @Data
-public class EncryptAndSignatureDto<T> {
+public class EncryptAndSignatureDto<E, P> {
 
     /**
      * 应用ID
@@ -27,30 +27,36 @@ public class EncryptAndSignatureDto<T> {
     /**
      * 数据密文
      */
-    private String encryptedData;
+    private E encryptedData;
 
     /**
      * 明文数据
      */
-    private T plainData;
+    private P plainData;
 
 
     public EncryptAndSignatureDto() {
     }
 
-    public EncryptAndSignatureDto(String appId, String signature, String encryptedKey, String encryptedData) {
+    public EncryptAndSignatureDto(String appId, String signature, String encryptedKey) {
+        this.appId = appId;
+        this.signature = signature;
+        this.encryptedKey = encryptedKey;
+    }
+
+    public EncryptAndSignatureDto(String appId, String signature, String encryptedKey, E encryptedData) {
         this.appId = appId;
         this.signature = signature;
         this.encryptedKey = encryptedKey;
         this.encryptedData = encryptedData;
     }
 
-    public EncryptAndSignatureDto(String appId, T plainData) {
+    public EncryptAndSignatureDto(String appId, P plainData) {
         this.plainData = plainData;
         this.appId = appId;
     }
 
-    public EncryptAndSignatureDto(EncryptAndSignatureDto<T> that) {
+    public EncryptAndSignatureDto(EncryptAndSignatureDto<E, P> that) {
         this.appId = that.getAppId();
         this.signature = that.getSignature();
         this.encryptedKey = that.getEncryptedKey();
